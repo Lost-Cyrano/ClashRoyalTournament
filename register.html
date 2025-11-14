@@ -532,7 +532,7 @@
                 
                 <div class="checkbox-group">
                     <input type="checkbox" id="terms" required>
-                    <label for="terms">J'accepte les conditions d'utilisation et la politique de confidentialité</label>
+                    <label for="terms">J'accepte <a href='/RICUPC.html'>les conditions d'utilisation et la politique de confidentialité</a></label>
                 </div>
                 
                 <div class="btn-container">
@@ -612,7 +612,7 @@
                 
                 return { 
                     success: true, 
-                    message: "Inscription réussie ! Un email de vérification a été envoyé à " + email + " . Une fois l'email confirmé, le message « compte créé » signifiera que votre inscription a bien été enregistrée."
+                    message: "Inscription réussie ! Un email de vérification a été envoyé à " + email,
                     user: user 
                 };
             } catch (error) {
