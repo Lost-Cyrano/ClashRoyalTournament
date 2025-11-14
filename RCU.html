@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conditions d'Utilisation - Tournoi Clash Royal MDL 2026</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #ffcc00;
+            --secondary: #8a2be2;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --blue: #3498db;
+            --red: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: url('https://lost-cyrano.github.io/ClashRoyalTournament/background.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 26, 46, 0.85);
+            z-index: -1;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 0;
+        }
+        
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-title {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 1rem;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            color: var(--primary);
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #aaa;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+        }
+        
+        .section-title i {
+            font-size: 1.8rem;
+        }
+        
+        .article {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .article h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        .article p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+        
+        .article ul {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .article li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .highlight {
+            background: rgba(255, 204, 0, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(to right, var(--primary), #ffaa00);
+            color: var(--dark);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: #aaa;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 2rem;
+        }
+        
+        .last-update {
+            text-align: center;
+            color: #aaa;
+            font-style: italic;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 1rem 0;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="https://lost-cyrano.github.io/ClashRoyalTournament/images__4_-removebg-preview.png" alt="Clash Royal" class="logo-title">
+        </div>
+        
+        <h1>Conditions d'Utilisation</h1>
+        <p class="subtitle">Tournoi Clash Royal - MDL 2026</p>
+        
+        <div class="last-update">
+            <i class="fas fa-clock"></i> Dernière mise à jour : 15 décembre 2024
+        </div>
+        
+        <div class="card fade-in">
+            <div class="section-title">
+                <i class="fas fa-gavel"></i>
+                Règlement du Tournoi
+            </div>
+            
+            <div class="article">
+                <h3><i class="fas fa-article-1"></i> Article 1 - Participation</h3>
+                <p>Le tournoi Clash Royal est ouvert à tous les élèves du lycée, sous réserve :</p>
+                <ul>
+                    <li>Être inscrit à la Maison des Lycéens (MDL) pour l'année 2025-2026</li>
+                    <li>Disposer d'un compte Clash Royal actif</li>
+                    <li>Avoir validé son adresse email via le processus d'inscription</li>
+                    <li>Respecter les règles de fair-play et de bonne conduite</li>
+                </ul>
+            </div>
+            
+            <div class="article">
+                <h3><i class="fas fa-article-2"></i> Article 2 - Déroulement du Tournoi</h3>
+                <p>Le tournoi se déroulera en <strong>élimination directe</strong> sur une seule journée :</p>
+                <ul>
+                    <li>Format : Tournoi à élimination directe</li>
+                    <li>Date : À déterminer (communiquée ultérieurement)</li>
+                    <li>Lieu : Retransmission en direct en salle Morgon</li>
+                    <li>Public : Ouvert à tous les élèves présents</li>
+                </ul>
+                <div class="highlight">
+                    <i class="fas fa-info-circle"></i> <strong>Important</strong> : Le tournoi sera intégralement retransmis en direct en salle Morgon pour tous les élèves souhaitant assister à l'événement.
+                </div>
+            </div>
+            
+            <div class="article">
+                <h3><i class="fas fa-article-3"></i> Article 3 - Règles de Jeu et Comportement</h3>
+                <p>Tous les participants s'engagent à :</p>
+                <ul>
+                    <li>Utiliser exclusivement leur propre compte Clash Royal</li>
+                    <li>Faire preuve de respect envers leurs adversaires et les arbitres</li>
+                    <li>Adopter un comportement sportif et fair-play</li>
+                    <li>Respecter les décisions des arbitres sans contestation</li>
+                </ul>
+                <div class="highlight">
+                    <i class="fas fa-exclamation-triangle"></i> <strong>Zéro tolérance</strong> : Toute suspicion de triche pourra entraîner une disqualification immédiate sans justification supplémentaire.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card fade-in">
+            <div class="section-title">
+                <i class="fas fa-shield-alt"></i>
+                Protection des Données
+            </div>
+            
+            <div class="article">
+                <h3><i class="fas fa-article-4"></i> Article 4 - Collecte des Données</h3>
+                <p>Conformément au RGPD, nous collectons uniquement les données nécessaires :</p>
+                <ul>
+                    <li>Nom et prénom pour l'identification</li>
+                    <li>Adresse email pour la communication</li>
+                    <li>Numéro de téléphone pour les urgences</li>
+                    <li>Numéro d'adhésion MDL pour vérification</li>
+                    <li>Informations pour la commande du maillot</li>
+                </ul>
+            </div>
+            
+            <div class="article">
+                <h3><i class="fas fa-article-5"></i> Article 5 - Utilisation des Données</h3>
+                <p>Vos données sont utilisées exclusivement pour :</p>
+                <ul>
+                    <li>L'organisation et le suivi du tournoi</li>
+                    <li>La communication relative à l'événement</li>
+                    <li>La commande et distribution des maillots</li>
+                    <li>Les statistiques internes de la MDL</li>
+                </ul>
+                <p><strong>Vos données ne seront jamais vendues ou partagées avec des tiers.</strong></p>
+            </div>
+            
+            <div class="article">
+                <h3><i class="fas fa-article-6"></i> Article 6 - Conservation des Données</h3>
+                <p>Vos données seront conservées jusqu'au 30 juin 2026, puis supprimées de nos systèmes.</p>
+                <div class="highlight">
+                    <i class="fas fa-download"></i> <strong>Droit à l'effacement</strong> : Vous pouvez demander la suppression de vos données à tout moment en contactant la MDL.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card fade-in">
+            <div class="section-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                Engagements et Responsabilités
+            </div>
+            
+            <div class="article">
+                <h3><i class="fas fa-article-7"></i> Article 7 - Engagements des Participants</h3>
+                <p>En vous inscrivant, vous vous engagez à :</p>
+                <ul>
+                    <li>Être respectueux envers votre adversaire et les arbitres</li>
+                    <li>Participer activement à toutes les phases du tournoi</li>
+                    <li>Respecter les horaires et délais communiqués</li>
+                    <li>Adopter un comportement exemplaire en salle Morgon</li>
+                </ul>
+            </div>
+            
+            <div class="article">
+                <h3><i class="fas fa-article-8"></i> Article 8 - Responsabilité de la MDL</h3>
+                <p>La Maison des Lycéens s'engage à :</p>
+                <ul>
+                    <li>Organiser le tournoi dans des conditions optimales</li>
+                    <li>Assurer un arbitrage équitable et impartial</li>
+                    <li>Communiquer clairement les règles et calendriers</li>
+                    <li>Respecter la confidentialité des données collectées</li>
+                    <li>Fournir les lots promis aux participants</li>
+                </ul>
+            </div>
+            
+            <div class="article">
+                <h3><i class="fas fa-article-9"></i> Article 9 - Sanctions</h3>
+                <p>En cas de non-respect du règlement, les sanctions suivantes peuvent s'appliquer :</p>
+                <ul>
+                    <li>Avertissement pour comportement inapproprié</li>
+                    <li>Disqualification immédiate pour triche ou comportement antisportif</li>
+                    <li>Exclusion définitive pour manquement grave au respect</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card fade-in">
+            <div class="section-title">
+                <i class="fas fa-trophy"></i>
+                Récompenses
+            </div>
+            
+            <div class="article">
+                <h3><i class="fas fa-article-10"></i> Article 10 - Lots et Récompenses</h3>
+                <p>La MDL s'engage à fournir des lots attractifs pour récompenser les participants :</p>
+                <ul>
+                    <li>Des récompenses seront remises aux meilleurs joueurs</li>
+                    <li>La nature exacte des lots sera communiquée ultérieurement</li>
+                    <li>Un maillot du tournoi sera fourni à chaque participant inscrit</li>
+                </ul>
+                <div class="highlight">
+                    <i class="fas fa-handshake"></i> <strong>Engagement</strong> : Nous nous engageons à fournir les lots promis dans le cadre de cet événement.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card fade-in">
+            <div class="section-title">
+                <i class="fas fa-file-signature"></i>
+                Acceptation des Conditions
+            </div>
+            
+            <div class="article">
+                <h3><i class="fas fa-article-11"></i> Article 11 - Validation</h3>
+                <p>En cochant la case d'acceptation lors de l'inscription, vous :</p>
+                <ul>
+                    <li>Reconnaissez avoir lu et compris l'intégralité de ce règlement</li>
+                    <li>Acceptez sans réserve toutes les conditions énoncées</li>
+                    <li>Vous engagez à respecter l'esprit sportif du tournoi</li>
+                    <li>Autorisez le traitement de vos données dans le cadre défini</li>
+                    <li>Acceptez le format d'élimination directe en une seule journée</li>
+                </ul>
+                
+                <div class="highlight">
+                    <i class="fas fa-handshake"></i> <strong>Engagement mutuel</strong> : Cette acceptation crée un contrat moral entre le participant et la MDL pour la bonne organisation de l'événement.
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <a href="index.html" class="btn">
+                <i class="fas fa-arrow-left"></i> Retour à l'inscription
+            </a>
+        </div>
+        
+        <footer>
+            <p>MDL 2026 - Maison des Lycéens | Tournoi Clash Royal</p>
+            <p>Pour toute question concernant ces conditions : anaelmaire.pro@mail.com</p>
+            <p style="margin-top: 1rem; font-size: 0.8rem;">
+                <i class="fas fa-balance-scale"></i> Document établi conformément aux recommandations CNIL
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Animation au défilement
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>
