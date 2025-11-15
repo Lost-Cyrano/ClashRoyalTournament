@@ -336,7 +336,7 @@
     <div class="black-screen" id="black-screen"></div>
 
     <script>
-        // Données des joueurs (sera remplacé par le fichier JSON)
+        // Données des joueurs
         let playersData = {};
         let currentPlayerIndex = 0;
         let currentPlayers = [];
@@ -350,15 +350,20 @@
         const playerName = document.getElementById('player-name');
         const blackScreen = document.getElementById('black-screen');
 
-        // Charger les données JSON
+        // Charger les données JSON depuis l'URL correcte
         async function loadPlayersData() {
             try {
-                const response = await fetch('./players.json');
+                const response = await fetch('https://lost-cyrano.github.io/ClashRoyalTournament/videos/playeurs.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 playersData = await response.json();
                 console.log('Données des joueurs chargées:', playersData);
+                startBtn.disabled = false;
             } catch (error) {
                 console.error('Erreur lors du chargement des données:', error);
-                alert('Erreur lors du chargement des données des joueurs');
+                alert('Erreur lors du chargement des données des joueurs: ' + error.message);
+                startBtn.disabled = true;
             }
         }
 
@@ -402,18 +407,27 @@
             }
             
             const player = currentPlayers[currentPlayerIndex];
-            const videoPath = `./bibli/${player.data[1]}`;
+            // Utiliser le chemin complet depuis GitHub
+            const videoPath = `https://lost-cyrano.github.io/ClashRoyalTournament/videos/bibli/${player.data[1]}`;
+            
+            console.log('Chargement vidéo:', videoPath);
             
             // Afficher le nom du joueur
             playerName.textContent = player.data[0];
             playerName.style.opacity = '0';
             
-            // Configurer et lancer la vidéo
+            // Configurer la vidéo
             videoPlayer.src = videoPath;
             videoPlayer.muted = false; // Activer le son
             videoPlayer.currentTime = 0;
             
+            // Réinitialiser les événements
+            videoPlayer.onloadeddata = null;
+            videoPlayer.onerror = null;
+            videoPlayer.onended = null;
+            
             videoPlayer.onloadeddata = function() {
+                console.log('Vidéo chargée:', videoPath);
                 // Fondu d'entrée du nom
                 setTimeout(() => {
                     playerName.classList.remove('fade-out');
@@ -423,6 +437,10 @@
                     setTimeout(() => {
                         videoPlayer.play().catch(e => {
                             console.error('Erreur de lecture vidéo:', e);
+                            // Continuer même en cas d'erreur
+                            setTimeout(() => {
+                                videoEnded();
+                            }, 3000);
                         });
                     }, 500);
                 }, 100);
@@ -430,11 +448,22 @@
             
             videoPlayer.onerror = function() {
                 console.error('Erreur de chargement vidéo:', videoPath);
-                alert(`Erreur de chargement de la vidéo pour ${player.data[0]}`);
-                playNextPlayer();
+                // Afficher un message d'erreur mais continuer
+                playerName.textContent = `${player.data[0]} (vidéo non disponible)`;
+                playerName.classList.remove('fade-out');
+                playerName.classList.add('fade-in');
+                
+                setTimeout(() => {
+                    videoEnded();
+                }, 3000);
             };
             
             videoPlayer.onended = function() {
+                console.log('Vidéo terminée:', videoPath);
+                videoEnded();
+            };
+            
+            function videoEnded() {
                 // Fondu de sortie
                 playerName.classList.remove('fade-in');
                 playerName.classList.add('fade-out');
@@ -454,7 +483,7 @@
                         playNextPlayer();
                     }, 1000);
                 }, 1000);
-            };
+            }
         }
 
         // Terminer la présentation
@@ -467,13 +496,21 @@
             player2Input.value = '';
             player1Input.focus();
             
-            alert('Présentations terminées ! Prêt pour la prochaine paire de joueurs.');
+            // Petit délai avant l'alerte pour laisser le temps à l'écran de disparaître
+            setTimeout(() => {
+                alert('Présentations terminées ! Prêt pour la prochaine paire de joueurs.');
+            }, 500);
         }
 
         // Raccourci clavier : Entrée pour lancer
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !presentationContainer.style.display === 'block') {
+            if (e.key === 'Enter' && presentationContainer.style.display !== 'block') {
                 startBtn.click();
+            }
+            
+            // Échap pour quitter le mode présentation
+            if (e.key === 'Escape' && presentationContainer.style.display === 'block') {
+                endPresentation();
             }
         });
 
