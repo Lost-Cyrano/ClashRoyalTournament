@@ -182,10 +182,20 @@
             display: none;
         }
         
-        .video-player {
+        .video-container {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: black;
+        }
+        
+        .video-player {
+            height: 100%;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
         }
         
         .player-name {
@@ -201,6 +211,7 @@
             text-align: center;
             opacity: 0;
             z-index: 1001;
+            pointer-events: none;
         }
         
         .black-screen {
@@ -240,7 +251,7 @@
         }
         
         .fade-in {
-            animation: fadeIn 2s ease-in-out forwards;
+            animation: fadeIn 0.5s ease-in-out forwards;
         }
         
         .fade-out {
@@ -328,7 +339,9 @@
 
     <!-- Conteneur pour la présentation plein écran -->
     <div class="presentation-container" id="presentation-container">
-        <video class="video-player" id="video-player" muted></video>
+        <div class="video-container">
+            <video class="video-player" id="video-player" muted></video>
+        </div>
         <div class="player-name" id="player-name"></div>
     </div>
     
@@ -340,6 +353,7 @@
         let playersData = {};
         let currentPlayerIndex = 0;
         let currentPlayers = [];
+        let nameFadeOutTimeout = null;
 
         // Éléments DOM
         const player1Input = document.getElementById('player1');
@@ -393,6 +407,15 @@
 
         // Démarrer la présentation
         function startPresentation() {
+            // Activer le mode plein écran du navigateur
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) {
+                document.documentElement.msRequestFullscreen();
+            }
+            
             presentationContainer.style.display = 'block';
             document.body.style.overflow = 'hidden';
             playNextPlayer();
@@ -408,13 +431,20 @@
             
             const player = currentPlayers[currentPlayerIndex];
             // Utiliser le chemin complet depuis GitHub
-            const videoPath = `https://lost-cyrano.github.io/ClashRoyalTournament/videos/bibli/${player.data[1]}`;
+            const videoPath = `https://lost-cyrano.github.io/ClashRoyalTournament/videos/${player.data[1]}`;
             
             console.log('Chargement vidéo:', videoPath);
             
             // Afficher le nom du joueur
             playerName.textContent = player.data[0];
             playerName.style.opacity = '0';
+            playerName.classList.remove('fade-in', 'fade-out');
+            
+            // Nettoyer les timeouts précédents
+            if (nameFadeOutTimeout) {
+                clearTimeout(nameFadeOutTimeout);
+                nameFadeOutTimeout = null;
+            }
             
             // Configurer la vidéo
             videoPlayer.src = videoPath;
@@ -425,37 +455,50 @@
             videoPlayer.onloadeddata = null;
             videoPlayer.onerror = null;
             videoPlayer.onended = null;
+            videoPlayer.ontimeupdate = null;
             
             videoPlayer.onloadeddata = function() {
                 console.log('Vidéo chargée:', videoPath);
-                // Fondu d'entrée du nom
+                
+                // Lancer la vidéo
+                videoPlayer.play().catch(e => {
+                    console.error('Erreur de lecture vidéo:', e);
+                    // Continuer même en cas d'erreur
+                    setTimeout(() => {
+                        videoEnded();
+                    }, 3000);
+                });
+                
+                // Programmer l'apparition du nom après 1 seconde
                 setTimeout(() => {
                     playerName.classList.remove('fade-out');
                     playerName.classList.add('fade-in');
-                    
-                    // Lancer la vidéo après l'apparition du nom
-                    setTimeout(() => {
-                        videoPlayer.play().catch(e => {
-                            console.error('Erreur de lecture vidéo:', e);
-                            // Continuer même en cas d'erreur
-                            setTimeout(() => {
-                                videoEnded();
-                            }, 3000);
-                        });
-                    }, 500);
-                }, 100);
+                }, 1000);
+                
+                // Surveiller le temps pour la disparition du nom
+                videoPlayer.ontimeupdate = function() {
+                    if (videoPlayer.duration && videoPlayer.currentTime >= videoPlayer.duration - 1) {
+                        // Dernière seconde de la vidéo - lancer la disparition du nom
+                        if (!playerName.classList.contains('fade-out')) {
+                            playerName.classList.remove('fade-in');
+                            playerName.classList.add('fade-out');
+                        }
+                    }
+                };
             };
             
             videoPlayer.onerror = function() {
                 console.error('Erreur de chargement vidéo:', videoPath);
                 // Afficher un message d'erreur mais continuer
                 playerName.textContent = `${player.data[0]} (vidéo non disponible)`;
-                playerName.classList.remove('fade-out');
-                playerName.classList.add('fade-in');
+                setTimeout(() => {
+                    playerName.classList.remove('fade-out');
+                    playerName.classList.add('fade-in');
+                }, 1000);
                 
                 setTimeout(() => {
                     videoEnded();
-                }, 3000);
+                }, 4000);
             };
             
             videoPlayer.onended = function() {
@@ -464,10 +507,6 @@
             };
             
             function videoEnded() {
-                // Fondu de sortie
-                playerName.classList.remove('fade-in');
-                playerName.classList.add('fade-out');
-                
                 // Fondu au noir
                 blackScreen.style.display = 'block';
                 blackScreen.classList.remove('fade-out');
@@ -488,6 +527,15 @@
 
         // Terminer la présentation
         function endPresentation() {
+            // Quitter le mode plein écran
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+            
             presentationContainer.style.display = 'none';
             document.body.style.overflow = 'auto';
             
@@ -495,11 +543,22 @@
             player1Input.value = '';
             player2Input.value = '';
             player1Input.focus();
-            
-            // Petit délai avant l'alerte pour laisser le temps à l'écran de disparaître
-            setTimeout(() => {
-                alert('Présentations terminées ! Prêt pour la prochaine paire de joueurs.');
-            }, 500);
+        }
+
+        // Gérer la sortie du mode plein écran
+        document.addEventListener('fullscreenchange', exitHandler);
+        document.addEventListener('webkitfullscreenchange', exitHandler);
+        document.addEventListener('mozfullscreenchange', exitHandler);
+        document.addEventListener('MSFullscreenChange', exitHandler);
+        
+        function exitHandler() {
+            if (!document.fullscreenElement && !document.webkitIsFullScreen && 
+                !document.mozFullScreen && !document.msFullscreenElement) {
+                // Si on sort du mode plein écran manuellement, terminer la présentation
+                if (presentationContainer.style.display === 'block') {
+                    endPresentation();
+                }
+            }
         }
 
         // Raccourci clavier : Entrée pour lancer
