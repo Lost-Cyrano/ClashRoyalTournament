@@ -575,7 +575,6 @@
 
         // Initialiser Firebase
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
         const auth = firebase.auth();
 
         // Variables pour suivre l'étape actuelle
@@ -618,16 +617,6 @@
                 
                 // Envoyer l'email de vérification avec l'URL personnalisée
                 await user.sendEmailVerification(actionCodeSettings);
-                
-                // Sauvegarder temporairement les données dans Firebase
-                const pendingData = {
-                    ...userData,
-                    uid: user.uid,
-                    timestamp: new Date().toISOString(),
-                    status: 'pending_verification'
-                };
-                
-                await database.ref('pending_inscriptions/' + user.uid).set(pendingData);
                 
                 // Déconnecter l'utilisateur
                 await auth.signOut();
@@ -827,7 +816,8 @@
                 membership: document.getElementById('membership').value,
                 size: document.getElementById('size').value,
                 gender: document.getElementById('gender').value,
-                color: document.getElementById('color').value
+                color: document.getElementById('color').value,
+                timestamp: new Date().toISOString()
             };
             
             try {
@@ -900,7 +890,7 @@
         
         // Initialisation au chargement
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("Firebase Realtime Database et Authentication initialisés !");
+            console.log("Firebase Authentication initialisé !");
             
             // Animation d'entrée
             const elements = document.querySelectorAll('.card, .form-step');
