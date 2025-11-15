@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -310,6 +309,300 @@
                 padding: 2rem;
             }
         }
+        :root {
+            --primary: #ffcc00;
+            --secondary: #8a2be2;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: url('https://lost-cyrano.github.io/ClashRoyalTournament/background.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 26, 46, 0.85);
+            z-index: -1;
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .logo-title {
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tournament-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tournament-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            color: var(--primary);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+        
+        .selection-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        label {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        input {
+            padding: 0.8rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            font-size: 1rem;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(to right, var(--primary), #ffaa00);
+            color: var(--dark);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .videos-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .video-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .participant-info {
+            text-align: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .participant-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.3rem;
+        }
+        
+        .participant-id {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            background: #000;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        .video-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .control-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 5px;
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            background: var(--primary);
+            color: var(--dark);
+        }
+        
+        .error-message {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--light);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--primary);
+        }
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        footer p {
+            margin-bottom: 0.3rem;
+        }
+        
+        /* Version desktop */
+        @media (min-width: 768px) {
+            .videos-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .selection-form {
+                flex-direction: row;
+                align-items: end;
+            }
+            
+            .input-group {
+                flex: 1;
+            }
+            
+            .btn {
+                margin-top: 0;
+                height: fit-content;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .tournament-icon {
+                width: 50px;
+                height: 50px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -364,21 +657,11 @@
             const loadingIndicator = document.getElementById('loadingIndicator');
             const videosContainer = document.getElementById('videosContainer');
             
-            let participantsData = {};
-            
-            // Charger les données JSON au démarrage
-            async function loadParticipantsData() {
-                try {
-                    const response = await fetch('participants.json');
-                    if (!response.ok) {
-                        throw new Error('Fichier participants.json non trouvé');
-                    }
-                    participantsData = await response.json();
-                    console.log('Données des participants chargées:', participantsData);
-                } catch (error) {
-                    showError('Erreur lors du chargement des données des participants: ' + error.message);
-                }
-            }
+            // Données de test avec URLs GitHub raw
+            const participantsData = {
+                "22": ["Mega Knight", "https://github.com/Lost-Cyrano/ClashRoyalTournament/raw/main/bibli/MegaKnight.mp4"],
+                "3": ["Battle Machine", "https://github.com/Lost-Cyrano/ClashRoyalTournament/raw/main/bibli/BatleMachine.mp4"]
+            };
             
             function showError(message) {
                 errorMessage.textContent = message;
@@ -418,12 +701,22 @@
                 const videoElement = document.createElement('video');
                 videoElement.controls = true;
                 videoElement.preload = 'metadata';
+                videoElement.crossOrigin = "anonymous"; // Important pour CORS
                 
+                // Ajouter plusieurs sources pour différents formats
                 const sourceElement = document.createElement('source');
-                sourceElement.src = `./bibli/${participantInfo[1]}`;
+                sourceElement.src = participantInfo[1];
                 sourceElement.type = 'video/mp4';
                 
                 videoElement.appendChild(sourceElement);
+                
+                // Message de fallback
+                const fallbackMessage = document.createElement('p');
+                fallbackMessage.textContent = 'Votre navigateur ne supporte pas la lecture vidéo.';
+                fallbackMessage.style.textAlign = 'center';
+                fallbackMessage.style.color = 'var(--danger)';
+                fallbackMessage.style.marginTop = '1rem';
+                videoElement.appendChild(fallbackMessage);
                 
                 const controlsDiv = document.createElement('div');
                 controlsDiv.className = 'video-controls';
@@ -431,7 +724,11 @@
                 const playBtn = document.createElement('button');
                 playBtn.className = 'control-btn';
                 playBtn.innerHTML = '▶️ Lecture';
-                playBtn.onclick = () => videoElement.play();
+                playBtn.onclick = () => {
+                    videoElement.play().catch(e => {
+                        showError('Erreur de lecture: ' + e.message);
+                    });
+                };
                 
                 const pauseBtn = document.createElement('button');
                 pauseBtn.className = 'control-btn';
@@ -446,13 +743,31 @@
                     muteBtn.innerHTML = videoElement.muted ? '🔊 Sound' : '🔇 Mute';
                 };
                 
+                const fullscreenBtn = document.createElement('button');
+                fullscreenBtn.className = 'control-btn';
+                fullscreenBtn.innerHTML = '⛶ Plein écran';
+                fullscreenBtn.onclick = () => {
+                    if (videoElement.requestFullscreen) {
+                        videoElement.requestFullscreen();
+                    } else if (videoElement.webkitRequestFullscreen) {
+                        videoElement.webkitRequestFullscreen();
+                    }
+                };
+                
                 controlsDiv.appendChild(playBtn);
                 controlsDiv.appendChild(pauseBtn);
                 controlsDiv.appendChild(muteBtn);
+                controlsDiv.appendChild(fullscreenBtn);
                 
                 videoCard.appendChild(participantInfoDiv);
                 videoCard.appendChild(videoElement);
                 videoCard.appendChild(controlsDiv);
+                
+                // Gestion des erreurs vidéo
+                videoElement.addEventListener('error', function(e) {
+                    console.error('Erreur vidéo:', e);
+                    showError(`Erreur avec la vidéo ${participantInfo[0]}: Format non supporté ou fichier corrompu`);
+                });
                 
                 return videoCard;
             }
@@ -481,29 +796,23 @@
                 videosContainer.innerHTML = '';
                 
                 try {
-                    // Créer les éléments vidéo
+                    // Créer les éléments vidéo avec URLs GitHub raw
                     const video1 = createVideoElement(participant1Id, participantsData[participant1Id]);
                     const video2 = createVideoElement(participant2Id, participantsData[participant2Id]);
                     
                     videosContainer.appendChild(video1);
                     videosContainer.appendChild(video2);
                     
-                    // Précharger les vidéos
-                    await Promise.all([
-                        new Promise((resolve) => {
-                            const video = video1.querySelector('video');
-                            video.onloadeddata = resolve;
-                            video.onerror = resolve; // Continuer même si une vidéo échoue
-                        }),
-                        new Promise((resolve) => {
-                            const video = video2.querySelector('video');
-                            video.onloadeddata = resolve;
-                            video.onerror = resolve;
-                        })
-                    ]);
-                    
                     videosContainer.classList.remove('hidden');
                     showLoading(false);
+                    
+                    // Forcer le chargement des métadonnées
+                    setTimeout(() => {
+                        const videos = videosContainer.querySelectorAll('video');
+                        videos.forEach(video => {
+                            video.load();
+                        });
+                    }, 100);
                     
                 } catch (error) {
                     showError('Erreur lors du chargement des vidéos: ' + error.message);
@@ -522,9 +831,6 @@
                     }
                 });
             });
-            
-            // Charger les données au démarrage
-            loadParticipantsData();
         });
     </script>
 </body>
