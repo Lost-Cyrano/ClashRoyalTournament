@@ -227,6 +227,37 @@
             }
         }
 
+        // Fonction pour extraire les données de l'URL Firebase
+        function extractDataFromFirebaseUrl() {
+            try {
+                // Récupérer le paramètre continueUrl de l'URL Firebase
+                const urlParams = new URLSearchParams(window.location.search);
+                const continueUrl = urlParams.get('continueUrl');
+                
+                if (!continueUrl) {
+                    throw new Error("Paramètre continueUrl manquant");
+                }
+
+                // Décoder l'URL (elle est encodée en URL)
+                const decodedContinueUrl = decodeURIComponent(continueUrl);
+                
+                // Extraire le paramètre data de l'URL décodée
+                const continueUrlParams = new URLSearchParams(new URL(decodedContinueUrl).search);
+                const encodedData = continueUrlParams.get('data');
+                
+                if (!encodedData) {
+                    throw new Error("Données d'inscription manquantes dans continueUrl");
+                }
+
+                // Décoder les données
+                return decodeData(encodedData);
+                
+            } catch (error) {
+                console.error("Erreur lors de l'extraction des données:", error);
+                throw new Error("Impossible de récupérer les données d'inscription");
+            }
+        }
+
         // Fonction pour appliquer la vérification d'email
         async function applyEmailVerification() {
             try {
@@ -262,6 +293,16 @@
                     }
                 }
 
+                // Vérifier si l'email existe déjà dans la base
+                const emailSnapshot = await database.ref('inscriptions')
+                    .orderByChild('email')
+                    .equalTo(userData.email)
+                    .once('value');
+                
+                if (emailSnapshot.exists()) {
+                    throw new Error("Une inscription avec cet email existe déjà");
+                }
+
                 // Préparer les données finales avec un ID unique
                 const inscriptionId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
                 
@@ -284,7 +325,7 @@
                 console.error("Erreur lors de la finalisation de l'inscription:", error);
                 return { 
                     success: false, 
-                    message: "Erreur lors de la finalisation de l'inscription." 
+                    message: error.message 
                 };
             }
         }
@@ -292,25 +333,24 @@
         // Fonction principale de vérification
         async function processVerification() {
             try {
-                // Récupérer les paramètres de l'URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const encodedData = urlParams.get('data');
+                console.log("Début du processus de vérification...");
+                
+                // Étape 1: Extraire les données de l'URL Firebase
+                console.log("Extraction des données depuis l'URL...");
+                const userData = extractDataFromFirebaseUrl();
+                console.log("Données extraites:", userData);
 
-                if (!encodedData) {
-                    throw new Error("Données d'inscription manquantes");
-                }
-
-                // Décoder les données
-                const userData = decodeData(encodedData);
-
-                // Appliquer la vérification d'email
+                // Étape 2: Appliquer la vérification d'email
+                console.log("Application de la vérification d'email...");
                 const verificationResult = await applyEmailVerification();
                 
                 if (!verificationResult.success) {
                     throw new Error(verificationResult.message);
                 }
+                console.log("Email vérifié avec succès");
 
-                // Finaliser l'inscription
+                // Étape 3: Finaliser l'inscription
+                console.log("Finalisation de l'inscription...");
                 const inscriptionResult = await completeInscription(userData);
 
                 if (inscriptionResult.success) {
@@ -318,6 +358,7 @@
                     document.getElementById('loadingState').classList.add('hidden');
                     document.getElementById('successState').classList.remove('hidden');
                     document.getElementById('successMessage').textContent = inscriptionResult.message;
+                    console.log("Inscription finalisée avec succès");
                 } else {
                     throw new Error(inscriptionResult.message);
                 }
@@ -332,6 +373,8 @@
 
         // Initialisation au chargement
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("URL complète:", window.location.href);
+            console.log("Paramètres URL:", window.location.search);
             processVerification();
         });
     </script>
