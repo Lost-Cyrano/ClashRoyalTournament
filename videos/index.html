@@ -29,7 +29,6 @@
             line-height: 1.6;
             min-height: 100vh;
             position: relative;
-            padding: 1rem;
         }
         
         body::before {
@@ -44,9 +43,10 @@
         }
         
         .container {
-            width: 100%;
-            max-width: 800px;
+            width: 95%;
+            max-width: 600px;
             margin: 0 auto;
+            padding: 1rem;
         }
         
         .logo-container {
@@ -105,36 +105,40 @@
             background: linear-gradient(to right, var(--primary), var(--secondary));
         }
         
-        .input-section {
+        .input-group {
             display: flex;
             flex-direction: column;
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
         
-        .input-group {
+        .input-row {
             display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+            gap: 1rem;
+            align-items: center;
         }
         
-        label {
+        .input-label {
+            min-width: 80px;
             font-weight: 600;
             color: var(--primary);
         }
         
-        input {
+        .number-input {
+            flex: 1;
             padding: 0.8rem;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            border: 2px solid var(--primary);
             border-radius: 8px;
             background: rgba(255, 255, 255, 0.1);
             color: var(--light);
             font-size: 1rem;
+            text-align: center;
         }
         
-        input:focus {
+        .number-input:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: var(--secondary);
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
         }
         
         .btn {
@@ -153,7 +157,6 @@
             text-decoration: none;
             width: 100%;
             justify-content: center;
-            margin-top: 1rem;
         }
         
         .btn:hover {
@@ -167,69 +170,48 @@
             transform: none;
         }
         
-        .presentation-section {
+        /* Styles pour la présentation plein écran */
+        .presentation-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 1000;
             display: none;
         }
         
-        .player-info {
-            text-align: center;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            border: 1px solid var(--primary);
+        .video-player {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .player-name {
-            font-size: 1.3rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
             font-weight: bold;
             color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .player-number {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .video-container {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto 1rem;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #000;
-        }
-        
-        video {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        
-        .status-message {
+            text-shadow: 3px 3px 0 var(--secondary), 
+                         6px 6px 0 rgba(0, 0, 0, 0.5);
             text-align: center;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            font-weight: 600;
+            opacity: 0;
+            z-index: 1001;
         }
         
-        .loading {
-            color: var(--primary);
-        }
-        
-        .success {
-            color: var(--success);
-        }
-        
-        .error {
-            color: var(--danger);
-        }
-        
-        .hidden {
+        .black-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 999;
+            opacity: 0;
             display: none;
         }
         
@@ -246,34 +228,46 @@
             margin-bottom: 0.3rem;
         }
         
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 2s ease-in-out forwards;
+        }
+        
+        .fade-out {
+            animation: fadeOut 1s ease-in-out forwards;
+        }
+        
+        /* Version desktop */
         @media (min-width: 768px) {
             .container {
-                max-width: 600px;
+                max-width: 500px;
             }
             
-            .card {
-                padding: 2rem;
-            }
-            
-            h1 {
-                font-size: 1.8rem;
-            }
-            
-            .input-section {
+            .input-row {
                 flex-direction: row;
-                justify-content: space-between;
-            }
-            
-            .input-group {
-                flex: 1;
             }
             
             .btn {
                 width: auto;
                 padding: 0.8rem 2rem;
             }
+            
+            .player-name {
+                font-size: 5rem;
+            }
         }
         
+        /* Très petits écrans */
         @media (max-width: 360px) {
             .container {
                 padding: 0.5rem;
@@ -291,6 +285,10 @@
             h1 {
                 font-size: 1.3rem;
             }
+            
+            .player-name {
+                font-size: 2.5rem;
+            }
         }
     </style>
 </head>
@@ -306,50 +304,20 @@
         </div>
         
         <div class="card">
-            <div class="input-section">
-                <div class="input-group">
-                    <label for="player1">Numéro du Joueur 1 :</label>
-                    <input type="number" id="player1" min="1" max="31" placeholder="Ex: 22">
+            <div class="input-group">
+                <div class="input-row">
+                    <span class="input-label">Joueur 1 :</span>
+                    <input type="number" id="player1" class="number-input" placeholder="Numéro du joueur" min="1" max="31">
                 </div>
-                <div class="input-group">
-                    <label for="player2">Numéro du Joueur 2 :</label>
-                    <input type="number" id="player2" min="1" max="31" placeholder="Ex: 3">
+                <div class="input-row">
+                    <span class="input-label">Joueur 2 :</span>
+                    <input type="number" id="player2" class="number-input" placeholder="Numéro du joueur" min="1" max="31">
                 </div>
             </div>
             
             <button class="btn" id="start-btn">
                 <span>🎬</span> Lancer les Présentations
             </button>
-            
-            <div class="presentation-section" id="presentation-section">
-                <div class="status-message loading" id="status-message">
-                    Chargement des présentations...
-                </div>
-                
-                <div id="player1-presentation" class="hidden">
-                    <div class="player-info">
-                        <div class="player-name" id="player1-name"></div>
-                        <div class="player-number" id="player1-number"></div>
-                    </div>
-                    <div class="video-container">
-                        <video id="video1" controls playsinline>
-                            Votre navigateur ne supporte pas la lecture vidéo.
-                        </video>
-                    </div>
-                </div>
-                
-                <div id="player2-presentation" class="hidden">
-                    <div class="player-info">
-                        <div class="player-name" id="player2-name"></div>
-                        <div class="player-number" id="player2-number"></div>
-                    </div>
-                    <div class="video-container">
-                        <video id="video2" controls playsinline>
-                            Votre navigateur ne supporte pas la lecture vidéo.
-                        </video>
-                    </div>
-                </div>
-            </div>
         </div>
         
         <footer>
@@ -358,225 +326,159 @@
         </footer>
     </div>
 
+    <!-- Conteneur pour la présentation plein écran -->
+    <div class="presentation-container" id="presentation-container">
+        <video class="video-player" id="video-player" muted></video>
+        <div class="player-name" id="player-name"></div>
+    </div>
+    
+    <!-- Écran noir pour les transitions -->
+    <div class="black-screen" id="black-screen"></div>
+
     <script>
-        // Données simulées - à remplacer par votre fichier JSON
-        const playersData = {
-            "1": ["Joueur Un", "video1.mp4"],
-            "2": ["Joueur Deux", "video2.mp4"],
-            "3": ["Joueur Trois", "video3.mp4"],
-            "4": ["Joueur Quatre", "video4.mp4"],
-            "5": ["Joueur Cinq", "video5.mp4"],
-            "6": ["Joueur Six", "video6.mp4"],
-            "7": ["Joueur Sept", "video7.mp4"],
-            "8": ["Joueur Huit", "video8.mp4"],
-            "9": ["Joueur Neuf", "video9.mp4"],
-            "10": ["Joueur Dix", "video10.mp4"],
-            "11": ["Joueur Onze", "video11.mp4"],
-            "12": ["Joueur Douze", "video12.mp4"],
-            "13": ["Joueur Treize", "video13.mp4"],
-            "14": ["Joueur Quatorze", "video14.mp4"],
-            "15": ["Joueur Quinze", "video15.mp4"],
-            "16": ["Joueur Seize", "video16.mp4"],
-            "17": ["Joueur Dix-Sept", "video17.mp4"],
-            "18": ["Joueur Dix-Huit", "video18.mp4"],
-            "19": ["Joueur Dix-Neuf", "video19.mp4"],
-            "20": ["Joueur Vingt", "video20.mp4"],
-            "21": ["Joueur Vingt-et-Un", "video21.mp4"],
-            "22": ["Joueur Vingt-Deux", "video22.mp4"],
-            "23": ["Joueur Vingt-Trois", "video23.mp4"],
-            "24": ["Joueur Vingt-Quatre", "video24.mp4"],
-            "25": ["Joueur Vingt-Cinq", "video25.mp4"],
-            "26": ["Joueur Vingt-Six", "video26.mp4"],
-            "27": ["Joueur Vingt-Sept", "video27.mp4"],
-            "28": ["Joueur Vingt-Huit", "video28.mp4"],
-            "29": ["Joueur Vingt-Neuf", "video29.mp4"],
-            "30": ["Joueur Trente", "video30.mp4"],
-            "31": ["Joueur Trente-et-Un", "video31.mp4"]
-        };
+        // Données des joueurs (sera remplacé par le fichier JSON)
+        let playersData = {};
+        let currentPlayerIndex = 0;
+        let currentPlayers = [];
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const player1Input = document.getElementById('player1');
-            const player2Input = document.getElementById('player2');
-            const startBtn = document.getElementById('start-btn');
-            const presentationSection = document.getElementById('presentation-section');
-            const statusMessage = document.getElementById('status-message');
+        // Éléments DOM
+        const player1Input = document.getElementById('player1');
+        const player2Input = document.getElementById('player2');
+        const startBtn = document.getElementById('start-btn');
+        const presentationContainer = document.getElementById('presentation-container');
+        const videoPlayer = document.getElementById('video-player');
+        const playerName = document.getElementById('player-name');
+        const blackScreen = document.getElementById('black-screen');
+
+        // Charger les données JSON
+        async function loadPlayersData() {
+            try {
+                const response = await fetch('./players.json');
+                playersData = await response.json();
+                console.log('Données des joueurs chargées:', playersData);
+            } catch (error) {
+                console.error('Erreur lors du chargement des données:', error);
+                alert('Erreur lors du chargement des données des joueurs');
+            }
+        }
+
+        // Démarrer les présentations
+        startBtn.addEventListener('click', function() {
+            const p1 = player1Input.value;
+            const p2 = player2Input.value;
             
-            let currentPlayer = 1;
-            let player1Data = null;
-            let player2Data = null;
+            if (!p1 || !p2) {
+                alert('Veuillez saisir les numéros des deux joueurs');
+                return;
+            }
+            
+            if (!playersData[p1] || !playersData[p2]) {
+                alert('Un ou plusieurs numéros de joueur sont invalides');
+                return;
+            }
+            
+            currentPlayers = [
+                { number: p1, data: playersData[p1] },
+                { number: p2, data: playersData[p2] }
+            ];
+            
+            currentPlayerIndex = 0;
+            startPresentation();
+        });
 
-            startBtn.addEventListener('click', function() {
-                const player1Num = player1Input.value;
-                const player2Num = player2Input.value;
-                
-                if (!player1Num || !player2Num) {
-                    showError("Veuillez entrer les numéros des deux joueurs");
-                    return;
-                }
-                
-                player1Data = playersData[player1Num];
-                player2Data = playersData[player2Num];
-                
-                if (!player1Data || !player2Data) {
-                    showError("Un ou plusieurs numéros de joueur sont invalides");
-                    return;
-                }
-                
-                // Masquer la section de saisie
-                document.querySelector('.input-section').style.display = 'none';
-                startBtn.style.display = 'none';
-                
-                // Afficher la section de présentation
-                presentationSection.style.display = 'block';
-                
-                // Démarrer la séquence de présentation
-                startPresentationSequence();
-            });
+        // Démarrer la présentation
+        function startPresentation() {
+            presentationContainer.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            playNextPlayer();
+        }
 
-            function startPresentationSequence() {
-                statusMessage.textContent = "Préparation de la présentation...";
-                statusMessage.className = "status-message loading";
-                
-                // Attendre un peu pour l'effet dramatique
+        // Jouer le prochain joueur
+        function playNextPlayer() {
+            if (currentPlayerIndex >= currentPlayers.length) {
+                // Tous les joueurs ont été présentés
+                endPresentation();
+                return;
+            }
+            
+            const player = currentPlayers[currentPlayerIndex];
+            const videoPath = `./bibli/${player.data[1]}`;
+            
+            // Afficher le nom du joueur
+            playerName.textContent = player.data[0];
+            playerName.style.opacity = '0';
+            
+            // Configurer et lancer la vidéo
+            videoPlayer.src = videoPath;
+            videoPlayer.muted = false; // Activer le son
+            videoPlayer.currentTime = 0;
+            
+            videoPlayer.onloadeddata = function() {
+                // Fondu d'entrée du nom
                 setTimeout(() => {
-                    presentPlayer1();
-                }, 2000);
-            }
-
-            function presentPlayer1() {
-                currentPlayer = 1;
-                statusMessage.textContent = `Présentation de ${player1Data[0]}...`;
-                
-                // Afficher la section du joueur 1
-                document.getElementById('player1-presentation').classList.remove('hidden');
-                document.getElementById('player1-name').textContent = player1Data[0];
-                document.getElementById('player1-number').textContent = `Joueur n°${player1Input.value}`;
-                
-                // Charger et jouer la vidéo
-                const video1 = document.getElementById('video1');
-                const videoPath = `./bibli/${player1Data[1]}`;
-                
-                video1.innerHTML = `
-                    <source src="${videoPath}" type="video/mp4">
-                    <source src="${videoPath.replace('.mp4', '.webm')}" type="video/webm">
-                    Votre navigateur ne supporte pas la lecture vidéo.
-                `;
-                
-                video1.load();
-                
-                video1.oncanplaythrough = function() {
-                    statusMessage.textContent = `Lecture de la présentation de ${player1Data[0]}`;
-                    statusMessage.className = "status-message success";
-                    video1.play().catch(e => {
-                        console.error("Erreur lecture vidéo 1:", e);
-                        showError("Erreur lors de la lecture de la vidéo 1");
-                    });
-                };
-                
-                video1.onerror = function() {
-                    showError(`Impossible de charger la vidéo de ${player1Data[0]}`);
-                };
-                
-                video1.onended = function() {
+                    playerName.classList.remove('fade-out');
+                    playerName.classList.add('fade-in');
+                    
+                    // Lancer la vidéo après l'apparition du nom
                     setTimeout(() => {
-                        document.getElementById('player1-presentation').classList.add('hidden');
-                        presentPlayer2();
-                    }, 1000);
-                };
-            }
-
-            function presentPlayer2() {
-                currentPlayer = 2;
-                statusMessage.textContent = `Présentation de ${player2Data[0]}...`;
+                        videoPlayer.play().catch(e => {
+                            console.error('Erreur de lecture vidéo:', e);
+                        });
+                    }, 500);
+                }, 100);
+            };
+            
+            videoPlayer.onerror = function() {
+                console.error('Erreur de chargement vidéo:', videoPath);
+                alert(`Erreur de chargement de la vidéo pour ${player.data[0]}`);
+                playNextPlayer();
+            };
+            
+            videoPlayer.onended = function() {
+                // Fondu de sortie
+                playerName.classList.remove('fade-in');
+                playerName.classList.add('fade-out');
                 
-                // Afficher la section du joueur 2
-                document.getElementById('player2-presentation').classList.remove('hidden');
-                document.getElementById('player2-name').textContent = player2Data[0];
-                document.getElementById('player2-number').textContent = `Joueur n°${player2Input.value}`;
+                // Fondu au noir
+                blackScreen.style.display = 'block';
+                blackScreen.classList.remove('fade-out');
+                blackScreen.classList.add('fade-in');
                 
-                // Charger et jouer la vidéo
-                const video2 = document.getElementById('video2');
-                const videoPath = `./bibli/${player2Data[1]}`;
-                
-                video2.innerHTML = `
-                    <source src="${videoPath}" type="video/mp4">
-                    <source src="${videoPath.replace('.mp4', '.webm')}" type="video/webm">
-                    Votre navigateur ne supporte pas la lecture vidéo.
-                `;
-                
-                video2.load();
-                
-                video2.oncanplaythrough = function() {
-                    statusMessage.textContent = `Lecture de la présentation de ${player2Data[0]}`;
-                    statusMessage.className = "status-message success";
-                    video2.play().catch(e => {
-                        console.error("Erreur lecture vidéo 2:", e);
-                        showError("Erreur lors de la lecture de la vidéo 2");
-                    });
-                };
-                
-                video2.onerror = function() {
-                    showError(`Impossible de charger la vidéo de ${player2Data[0]}`);
-                };
-                
-                video2.onended = function() {
-                    statusMessage.textContent = "Présentations terminées !";
-                    statusMessage.className = "status-message success";
+                setTimeout(() => {
+                    currentPlayerIndex++;
+                    blackScreen.classList.remove('fade-in');
+                    blackScreen.classList.add('fade-out');
                     
                     setTimeout(() => {
-                        // Réinitialiser pour une nouvelle présentation
-                        resetPresentation();
-                    }, 3000);
-                };
-            }
+                        blackScreen.style.display = 'none';
+                        playNextPlayer();
+                    }, 1000);
+                }, 1000);
+            };
+        }
 
-            function showError(message) {
-                statusMessage.textContent = message;
-                statusMessage.className = "status-message error";
-                
-                setTimeout(() => {
-                    resetPresentation();
-                }, 3000);
-            }
+        // Terminer la présentation
+        function endPresentation() {
+            presentationContainer.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            
+            // Réinitialiser les champs pour la prochaine présentation
+            player1Input.value = '';
+            player2Input.value = '';
+            player1Input.focus();
+            
+            alert('Présentations terminées ! Prêt pour la prochaine paire de joueurs.');
+        }
 
-            function resetPresentation() {
-                // Réinitialiser l'interface
-                document.querySelector('.input-section').style.display = 'flex';
-                startBtn.style.display = 'flex';
-                presentationSection.style.display = 'none';
-                
-                document.getElementById('player1-presentation').classList.add('hidden');
-                document.getElementById('player2-presentation').classList.add('hidden');
-                
-                // Réinitialiser les vidéos
-                document.getElementById('video1').pause();
-                document.getElementById('video2').pause();
-                
-                // Vider les champs
-                player1Input.value = '';
-                player2Input.value = '';
-                
-                // Remettre le focus sur le premier champ
-                player1Input.focus();
+        // Raccourci clavier : Entrée pour lancer
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !presentationContainer.style.display === 'block') {
+                startBtn.click();
             }
-
-            // Charger les données depuis le fichier JSON (remplacez par votre URL)
-            async function loadPlayersData() {
-                try {
-                    const response = await fetch('./players.json');
-                    if (response.ok) {
-                        const data = await response.json();
-                        Object.assign(playersData, data);
-                        console.log("Données des joueurs chargées avec succès");
-                    }
-                } catch (error) {
-                    console.warn("Impossible de charger players.json, utilisation des données par défaut");
-                }
-            }
-
-            // Charger les données au démarrage
-            loadPlayersData();
         });
+
+        // Charger les données au démarrage
+        loadPlayersData();
     </script>
 </body>
 </html>
