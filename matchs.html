@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbre du Tournoi Clash Royale - MDL 2026</title>
+    <style>
+        :root {
+            --primary: #ffcc00;
+            --secondary: #8a2be2;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: url('https://lost-cyrano.github.io/ClashRoyalTournament/background.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 26, 46, 0.85);
+            z-index: -1;
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-title {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 1rem;
+        }
+        
+        .tournament-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tournament-icon {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            color: var(--primary);
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: var(--light);
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+        
+        .tournament-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .tournament-title-small {
+            font-size: 1.8rem;
+            color: var(--primary);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .tournament-info {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .info-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .iframe-container {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            height: 600px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            transform-origin: top left;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(to right, var(--primary), #ffaa00);
+            color: var(--dark);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-fullscreen {
+            background: linear-gradient(to right, var(--success), #1e7e34);
+            color: white;
+        }
+        
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            margin-top: 1rem;
+        }
+        
+        .zoom-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .zoom-level {
+            font-weight: bold;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        footer p {
+            margin-bottom: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .tournament-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .tournament-info {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .iframe-container {
+                height: 500px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .tournament-title {
+                gap: 0.5rem;
+            }
+            
+            .tournament-icon {
+                width: 45px;
+                height: 45px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem 0.5rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .iframe-container {
+                height: 400px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .tournament-title {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .tournament-icon {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="https://github.com/Lost-Cyrano/ClashRoyalTournament/blob/main/images__4_-removebg-preview.png?raw=true" alt="Clash Royale" class="logo-title">
+            <div class="tournament-title">
+                <img src="https://github.com/Lost-Cyrano/ClashRoyalTournament/blob/main/logoTournament.png?raw=true" alt="Tournoi" class="tournament-icon">
+                <h1>ARBRE DU TOURNOI</h1>
+                <img src="https://github.com/Lost-Cyrano/ClashRoyalTournament/blob/main/logoTournament.png?raw=true" alt="Tournoi" class="tournament-icon">
+            </div>
+            <p class="subtitle">Suivez chaque match et découvrez qui deviendra le champion!</p>
+        </div>
+        
+        <div class="card">
+            <div class="tournament-header">
+                <div class="tournament-title-small">Tournoi Clash Royale MDL 2026</div>
+                <div class="tournament-info">
+                    <div class="info-badge">👥 31 Participants</div>
+                    <div class="info-badge">🏆 1 Vainqueur</div>
+                    <div class="info-badge">⚔️ Élimination directe</div>
+                </div>
+            </div>
+            
+            <div class="zoom-controls">
+                <button class="zoom-btn" id="zoom-out">-</button>
+                <div class="zoom-level" id="zoom-level">50%</div>
+                <button class="zoom-btn" id="zoom-in">+</button>
+            </div>
+            
+            <div class="iframe-container">
+                <iframe src="https://challonge.com/fr/pfog4qxk/module" width="100%" height="500" frameborder="0" scrolling="auto" allowtransparency="true"></iframe>
+            </div>
+            
+            <div class="controls">
+                <button class="btn" id="refresh-btn">
+                    <span>🔄</span> Actualiser les résultats
+                </button>
+                <button class="btn btn-fullscreen" id="fullscreen-btn">
+                    <span>⛶</span> Mode plein écran
+                </button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>MDL 2026 - Maison des Lycéens | Tournoi Clash Royal</p>
+            <p>Pour toute question, contactez-nous à anaelmaire.pro@gmail.com</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const iframe = document.querySelector('iframe');
+            const zoomInBtn = document.getElementById('zoom-in');
+            const zoomOutBtn = document.getElementById('zoom-out');
+            const zoomLevel = document.getElementById('zoom-level');
+            const refreshBtn = document.getElementById('refresh-btn');
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const iframeContainer = document.querySelector('.iframe-container');
+            
+            // Zoom initial à 50% pour voir l'arbre complet avec 31 participants
+            let currentZoom = 50;
+            updateZoom();
+            
+            // Fonction de zoom
+            function updateZoom() {
+                iframe.style.transform = `scale(${currentZoom / 100})`;
+                iframe.style.transformOrigin = 'top left';
+                iframe.style.width = `${100 / (currentZoom / 100)}%`;
+                iframe.style.height = `${500 / (currentZoom / 100)}px`;
+                zoomLevel.textContent = `${currentZoom}%`;
+            }
+            
+            zoomInBtn.addEventListener('click', function() {
+                if (currentZoom < 150) {
+                    currentZoom += 10;
+                    updateZoom();
+                }
+            });
+            
+            zoomOutBtn.addEventListener('click', function() {
+                if (currentZoom > 30) { // Limite minimale à 30%
+                    currentZoom -= 10;
+                    updateZoom();
+                }
+            });
+            
+            // Actualisation de l'iframe
+            refreshBtn.addEventListener('click', function() {
+                iframe.src = iframe.src;
+            });
+            
+            // Mode plein écran
+            fullscreenBtn.addEventListener('click', function() {
+                if (iframeContainer.requestFullscreen) {
+                    iframeContainer.requestFullscreen();
+                } else if (iframeContainer.webkitRequestFullscreen) {
+                    iframeContainer.webkitRequestFullscreen();
+                } else if (iframeContainer.msRequestFullscreen) {
+                    iframeContainer.msRequestFullscreen();
+                }
+            });
+            
+            // Navigation par clavier
+            document.addEventListener('keydown', function(e) {
+                if (e.key === '+' || e.key === '=') {
+                    e.preventDefault();
+                    zoomInBtn.click();
+                } else if (e.key === '-' || e.key === '_') {
+                    e.preventDefault();
+                    zoomOutBtn.click();
+                } else if (e.key === 'r' || e.key === 'R') {
+                    e.preventDefault();
+                    refreshBtn.click();
+                } else if (e.key === 'f' || e.key === 'F') {
+                    e.preventDefault();
+                    fullscreenBtn.click();
+                }
+            });
+            
+            // Gestion de la sortie du mode plein écran
+            document.addEventListener('fullscreenchange', exitHandler);
+            document.addEventListener('webkitfullscreenchange', exitHandler);
+            document.addEventListener('mozfullscreenchange', exitHandler);
+            document.addEventListener('MSFullscreenChange', exitHandler);
+            
+            function exitHandler() {
+                if (!document.fullscreenElement && !document.webkitIsFullScreen && 
+                    !document.mozFullScreen && !document.msFullscreenElement) {
+                    // On peut ajouter des actions à effectuer en sortant du mode plein écran
+                }
+            }
+        });
+    </script>
+</body>
+</html>
