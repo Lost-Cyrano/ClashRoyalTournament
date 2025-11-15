@@ -3,237 +3,920 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tournoi Clash Royal MDL 2026</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <title>Tournoi Clash Royal - MDL 2026</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 8px; box-sizing: border-box; }
-        button { background: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        .hidden { display: none; }
-        .user-info { background: #f8f9fa; padding: 15px; margin: 20px 0; }
+        :root {
+            --primary: #ffcc00;
+            --secondary: #8a2be2;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --blue: #3498db;
+            --red: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: url('https://lost-cyrano.github.io/ClashRoyalTournament/background.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 26, 46, 0.85);
+            z-index: -1;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 0;
+        }
+        
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-title {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 1rem;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            color: var(--primary);
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #aaa;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+        
+        .form-step {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .form-step.active {
+            display: block;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 1;
+        }
+        
+        .step {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active {
+            background: var(--primary);
+            color: var(--dark);
+        }
+        
+        .step.completed {
+            background: var(--success);
+            color: white;
+        }
+        
+        .step-label {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        
+        .step.active .step-label {
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .section-title i {
+            font-size: 1.8rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            font-size: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.3);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .checkbox-group input {
+            width: auto;
+        }
+        
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(to right, var(--primary), #ffaa00);
+            color: var(--dark);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .success-message {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .error-message {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .info-message {
+            background: rgba(13, 110, 253, 0.2);
+            border: 1px solid var(--blue);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .trophy-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .color-options {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .color-option.selected {
+            border-color: white;
+            transform: scale(1.1);
+        }
+        
+        .color-blue {
+            background: var(--blue);
+        }
+        
+        .color-red {
+            background: var(--red);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (min-width: 768px) {
+            .form-row {
+                display: flex;
+                gap: 1rem;
+            }
+            
+            .form-row .form-group {
+                flex: 1;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Tournoi Clash Royal MDL 2026</h1>
+        <div class="logo-container">
+            <img src="https://lost-cyrano.github.io/ClashRoyalTournament/images__4_-removebg-preview.png" alt="Clash Royal" class="logo-title">
+        </div>
         
-        <!-- Section connexion -->
-        <div id="loginSection">
-            <h2>Connexion</h2>
-            <div class="form-group">
-                <label for="loginEmail">Email:</label>
-                <input type="email" id="loginEmail" required>
-            </div>
-            <button onclick="sendLoginLink()">Envoyer le lien de connexion</button>
-        </div>
-
-        <!-- Section utilisateur connecté -->
-        <div id="userSection" class="hidden">
-            <div class="user-info">
-                <h3>Bienvenue <span id="userEmail"></span>!</h3>
-                <p>Vous êtes connecté avec succès.</p>
-                <button onclick="logout()">Déconnexion</button>
-            </div>
-        </div>
-
-        <!-- Formulaire d'inscription (seulement pour utilisateurs connectés) -->
-        <div id="registrationSection" class="hidden">
-            <h2>Inscription au Tournoi</h2>
-            <form id="registrationForm">
-                <div class="form-group">
-                    <label for="firstName">Prénom:</label>
-                    <input type="text" id="firstName" required>
+        <h1>Tournoi Clash Royal</h1>
+        <p class="subtitle">Organisé par la MDL 2026 - Inscriptions ouvertes</p>
+        
+        <div class="card" id="mainCard">
+            <div class="step-indicator">
+                <div class="step active" data-step="1">
+                    1
+                    <div class="step-label">Identité</div>
                 </div>
-                <div class="form-group">
-                    <label for="lastName">Nom:</label>
-                    <input type="text" id="lastName" required>
+                <div class="step" data-step="2">
+                    2
+                    <div class="step-label">Contact</div>
                 </div>
+                <div class="step" data-step="3">
+                    3
+                    <div class="step-label">Maillot</div>
+                </div>
+                <div class="step" data-step="4">
+                    4
+                    <div class="step-label">Confirmation</div>
+                </div>
+            </div>
+            
+            <!-- Étape 1: Informations personnelles -->
+            <div class="form-step active" id="step1">
+                <h2 class="section-title">
+                    <i class="fas fa-user"></i>
+                    Informations personnelles
+                </h2>
+                
                 <div class="form-group">
-                    <label for="playerClass">Classe de joueur:</label>
-                    <select id="playerClass" required>
-                        <option value="">Sélectionnez</option>
-                        <option value="Premiere">Première</option>
+                    <label for="lastName">Nom</label>
+                    <input type="text" id="lastName" placeholder="Entrez votre nom" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="firstName">Prénom</label>
+                    <input type="text" id="firstName" placeholder="Entrez votre prénom" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="class">Classe</label>
+                    <select id="class" required>
+                        <option value="" disabled selected>Sélectionnez votre classe</option>
                         <option value="Seconde">Seconde</option>
-                        <option value="Cadet">Cadet</option>
+                        <option value="Premiere">Première</option>
+                        <option value="Terminale">Terminale</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
-                    <label for="trophies">Nombre de trophées:</label>
-                    <input type="number" id="trophies" required>
+                    <label for="trophies">Nombre de trophées Clash Royal</label>
+                    <input type="number" id="trophies" min="0" max="10000" placeholder="Ex: 4500" required>
+                    <div class="trophy-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Vous pouvez trouver ce nombre dans votre profil Clash Royal</span>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="phone">Téléphone:</label>
-                    <input type="tel" id="phone" required>
+                
+                <div class="btn-container">
+                    <div></div>
+                    <button class="btn" id="nextBtn1">
+                        Suivant <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
+            </div>
+            
+            <!-- Étape 2: Informations de contact -->
+            <div class="form-step" id="step2">
+                <h2 class="section-title">
+                    <i class="fas fa-id-card"></i>
+                    Informations de contact
+                </h2>
+                
                 <div class="form-group">
-                    <label for="membership">Numéro d'adhésion:</label>
-                    <input type="text" id="membership" required>
+                    <label for="phone">Numéro de téléphone</label>
+                    <input type="tel" id="phone" placeholder="Ex: 0612345678" required>
                 </div>
+                
                 <div class="form-group">
-                    <label for="tshirtSize">Taille T-shirt:</label>
-                    <select id="tshirtSize" required>
-                        <option value="">Sélectionnez</option>
+                    <label for="email">Adresse email</label>
+                    <input type="email" id="email" placeholder="Ex: anaelmaire.pro@gmail.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="membership">Numéro d'adhésion à la MDL</label>
+                    <input type="text" id="membership" placeholder="Ex: MDL2026-123" required>
+                </div>
+                
+                <div class="btn-container">
+                    <button class="btn btn-secondary" id="prevBtn2">
+                        <i class="fas fa-arrow-left"></i> Précédent
+                    </button>
+                    <button class="btn" id="nextBtn2">
+                        Suivant <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Étape 3: Commande de maillot -->
+            <div class="form-step" id="step3">
+                <h2 class="section-title">
+                    <i class="fas fa-tshirt"></i>
+                    Commande de maillot
+                </h2>
+                
+                <div class="form-group">
+                    <label for="size">Taille de torse</label>
+                    <select id="size" required>
+                        <option value="" disabled selected>Sélectionnez votre taille</option>
                         <option value="S">S</option>
                         <option value="M">M</option>
                         <option value="L">L</option>
                         <option value="XL">XL</option>
                         <option value="XXL">XXL</option>
+                        <option value="XXXL">XXXL</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
-                    <label for="gender">Genre:</label>
+                    <label for="gender">Sexe</label>
                     <select id="gender" required>
-                        <option value="">Sélectionnez</option>
-                        <option value="Garçon">Garçon</option>
+                        <option value="" disabled selected>Sélectionnez votre sexe</option>
                         <option value="Fille">Fille</option>
                         <option value="Garçon">Garçon</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
-                    <label for="tshirtColor">Couleur T-shirt:</label>
-                    <select id="tshirtColor" required>
-                        <option value="">Sélectionnez</option>
-                        <option value="rouge">Rouge</option>
-                        <option value="bleu">Bleu</option>
-                        <option value="vert">Vert</option>
-                        <option value="noir">Noir</option>
-                        <option value="blanc">Blanc</option>
-                    </select>
+                    <label>Couleur favorite</label>
+                    <div class="color-options">
+                        <div class="color-option color-blue selected" data-color="bleu"></div>
+                        <div class="color-option color-red" data-color="rouge"></div>
+                    </div>
+                    <input type="hidden" id="color" value="bleu" required>
                 </div>
-                <button type="submit">S'inscrire au tournoi</button>
-            </form>
+                
+                <div class="btn-container">
+                    <button class="btn btn-secondary" id="prevBtn3">
+                        <i class="fas fa-arrow-left"></i> Précédent
+                    </button>
+                    <button class="btn" id="nextBtn3">
+                        Suivant <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Étape 4: Confirmation -->
+            <div class="form-step" id="step4">
+                <h2 class="section-title">
+                    <i class="fas fa-check-circle"></i>
+                    Confirmation
+                </h2>
+                
+                <div class="form-group">
+                    <p>Veuillez vérifier vos informations avant de finaliser votre inscription :</p>
+                    
+                    <div id="summary" style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                        <!-- Les informations récapitulatives seront insérées ici -->
+                    </div>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms">J'accepte les conditions d'utilisation et la politique de confidentialité</label>
+                </div>
+                
+                <div class="btn-container">
+                    <button class="btn btn-secondary" id="prevBtn4">
+                        <i class="fas fa-arrow-left"></i> Précédent
+                    </button>
+                    <button class="btn" id="submitBtn">
+                        <i class="fas fa-paper-plane"></i> Finaliser l'inscription
+                    </button>
+                </div>
+                
+                <div class="success-message" id="successMessage">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="successText">Votre inscription a été enregistrée avec succès !</span>
+                </div>
+                
+                <div class="info-message" id="infoMessage">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="infoText"></span>
+                </div>
+                
+                <div class="error-message" id="errorMessage">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="errorText">Une erreur s'est produite. Veuillez réessayer.</span>
+                </div>
+            </div>
         </div>
+        
+        <footer>
+            <p>MDL 2026 - Maison des Lycéens | Tournoi Clash Royal</p>
+            <p>Pour toute question, contactez-nous à anaelmaire.pro@gmail.com</p>
+        </footer>
     </div>
 
     <script>
         // Configuration Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAVR2UZVvlW6OAHf43iznqoErojYLCInbY",
-            authDomain: "clashroyaltournament-5d1d7.firebaseapp.com",
-            projectId: "clashroyaltournament-5d1d7",
-            storageBucket: "clashroyaltournament-5d1d7.firebasestorage.app",
-            messagingSenderId: "522424",
-            appId: "1:522424:web:b4d9b2a9c3c0c0c0c0c0c0"
+            authDomain: "clashroyaltournament-e3a4f.firebaseapp.com",
+            databaseURL: "https://clashroyaltournament-e3a4f-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "clashroyaltournament-e3a4f",
+            storageBucket: "clashroyaltournament-e3a4f.firebasestorage.app",
+            messagingSenderId: "903714952350",
+            appId: "1:903714952350:web:076d357cab70ccfd0dd78f"
         };
 
         // Initialiser Firebase
         firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
         const auth = firebase.auth();
-        const db = firebase.firestore();
 
-        // Vérifier l'état de connexion
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                // Utilisateur connecté
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('userSection').classList.remove('hidden');
-                document.getElementById('registrationSection').classList.remove('hidden');
-                document.getElementById('userEmail').textContent = user.email;
+        // Variables pour suivre l'étape actuelle
+        let currentStep = 1;
+        const totalSteps = 4;
+        
+        // Éléments DOM
+        const steps = document.querySelectorAll('.form-step');
+        const stepIndicators = document.querySelectorAll('.step');
+        
+        // Fonction pour encoder les données en base64 URL-safe
+        function encodeData(data) {
+            const jsonString = JSON.stringify(data);
+            const base64 = btoa(unescape(encodeURIComponent(jsonString)));
+            return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        }
+        
+        // Fonction pour créer un compte temporaire et envoyer l'email de vérification
+        async function sendVerificationEmail(email, userData) {
+            try {
+                // Générer un mot de passe temporaire
+                const temporaryPassword = Math.random().toString(36).slice(-10) + "Aa1!";
                 
-                // Vérifier si l'utilisateur est déjà inscrit
-                checkExistingRegistration(user.uid);
-            } else {
-                // Utilisateur non connecté
-                document.getElementById('loginSection').classList.remove('hidden');
-                document.getElementById('userSection').classList.add('hidden');
-                document.getElementById('registrationSection').classList.add('hidden');
+                // Créer l'utilisateur avec Firebase Auth
+                const userCredential = await auth.createUserWithEmailAndPassword(email, temporaryPassword);
+                const user = userCredential.user;
+                
+                // Encoder les données pour l'URL
+                const encodedData = encodeData(userData);
+                
+                // Construire l'URL de continuation avec le format Firebase
+                const baseUrl = window.location.origin;
+                const continueUrl = `${baseUrl}/verif.html?data=${encodedData}`;
+                
+                // Configuration d'action pour Firebase
+                const actionCodeSettings = {
+                    url: continueUrl,
+                    handleCodeInApp: false
+                };
+                
+                // Envoyer l'email de vérification avec l'URL personnalisée
+                await user.sendEmailVerification(actionCodeSettings);
+                
+                // Sauvegarder temporairement les données dans Firebase
+                const pendingData = {
+                    ...userData,
+                    uid: user.uid,
+                    timestamp: new Date().toISOString(),
+                    status: 'pending_verification'
+                };
+                
+                await database.ref('pending_inscriptions/' + user.uid).set(pendingData);
+                
+                // Déconnecter l'utilisateur
+                await auth.signOut();
+                
+                return { 
+                    success: true, 
+                    message: "Un email de vérification a été envoyé à " + email + ". Cliquez sur le lien dans l'email pour finaliser votre inscription.",
+                    user: user 
+                };
+            } catch (error) {
+                console.error("Erreur lors de l'envoi de l'email de vérification:", error);
+                
+                let errorMessage = "Erreur lors de l'inscription. ";
+                
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = "Cette adresse email est déjà utilisée.";
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = "Format d'email invalide.";
+                        break;
+                    default:
+                        errorMessage += error.message;
+                }
+                
+                return { 
+                    success: false, 
+                    message: errorMessage 
+                };
+            }
+        }
+        
+        // Fonction pour sauvegarder l'inscription
+        async function saveInscription(data) {
+            try {
+                const email = data.email;
+                
+                // Envoyer l'email de vérification avec les données encodées
+                const result = await sendVerificationEmail(email, data);
+                return result;
+                
+            } catch (error) {
+                console.error("Erreur lors de l'inscription:", error);
+                return { 
+                    success: false, 
+                    message: "Erreur technique. Veuillez réessayer." 
+                };
+            }
+        }
+        
+        // Fonction pour afficher une étape spécifique
+        function showStep(stepNumber) {
+            steps.forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            document.getElementById(`step${stepNumber}`).classList.add('active');
+            
+            stepIndicators.forEach(indicator => {
+                const step = parseInt(indicator.getAttribute('data-step'));
+                indicator.classList.remove('active', 'completed');
+                
+                if (step === stepNumber) {
+                    indicator.classList.add('active');
+                } else if (step < stepNumber) {
+                    indicator.classList.add('completed');
+                }
+            });
+            
+            currentStep = stepNumber;
+        }
+        
+        // Gestion de la sélection de couleur
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.color-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                document.getElementById('color').value = this.getAttribute('data-color');
+            });
+        });
+        
+        // Navigation entre les étapes
+        document.getElementById('nextBtn1').addEventListener('click', function() {
+            if (validateStep(1)) {
+                showStep(2);
             }
         });
-
-        // Fonction pour envoyer le lien de connexion
-        async function sendLoginLink() {
-            const email = document.getElementById('loginEmail').value;
+        
+        document.getElementById('prevBtn2').addEventListener('click', function() {
+            showStep(1);
+        });
+        
+        document.getElementById('nextBtn2').addEventListener('click', function() {
+            if (validateStep(2)) {
+                showStep(3);
+            }
+        });
+        
+        document.getElementById('prevBtn3').addEventListener('click', function() {
+            showStep(2);
+        });
+        
+        document.getElementById('nextBtn3').addEventListener('click', function() {
+            if (validateStep(3)) {
+                updateSummary();
+                showStep(4);
+            }
+        });
+        
+        document.getElementById('prevBtn4').addEventListener('click', function() {
+            showStep(3);
+        });
+        
+        // Validation d'une étape
+        function validateStep(step) {
+            let isValid = true;
+            let fields = [];
             
-            if (!email) {
-                alert('Veuillez saisir votre email');
-                return;
+            if (step === 1) {
+                fields = ['lastName', 'firstName', 'class', 'trophies'];
+            } else if (step === 2) {
+                fields = ['phone', 'email', 'membership'];
+            } else if (step === 3) {
+                fields = ['size', 'gender', 'color'];
             }
-
-            const actionCodeSettings = {
-                url: 'https://lost-cyrano.github.io/ClashRoyalTournament/verif.html?mode=signIn',
-                handleCodeInApp: true
-            };
-
-            try {
-                await auth.sendSignInLinkToEmail(email, actionCodeSettings);
-                
-                // Sauvegarder l'email localement
-                window.localStorage.setItem('emailForSignIn', email);
-                
-                alert('Lien de connexion envoyé à ' + email + '. Vérifiez votre boîte email.');
-            } catch (error) {
-                console.error('Erreur envoi lien:', error);
-                alert('Erreur: ' + error.message);
-            }
-        }
-
-        // Déconnexion
-        function logout() {
-            auth.signOut();
-        }
-
-        // Vérifier si l'utilisateur est déjà inscrit
-        async function checkExistingRegistration(uid) {
-            try {
-                const doc = await db.collection('registrations').doc(uid).get();
-                if (doc.exists) {
-                    // L'utilisateur est déjà inscrit, pré-remplir le formulaire
-                    const data = doc.data();
-                    document.getElementById('firstName').value = data.firstName || '';
-                    document.getElementById('lastName').value = data.lastName || '';
-                    document.getElementById('playerClass').value = data.class || '';
-                    document.getElementById('trophies').value = data.trophies || '';
-                    document.getElementById('phone').value = data.phone || '';
-                    document.getElementById('membership').value = data.membership || '';
-                    document.getElementById('tshirtSize').value = data.size || '';
-                    document.getElementById('gender').value = data.gender || '';
-                    document.getElementById('tshirtColor').value = data.color || '';
-                    
-                    alert('Vous êtes déjà inscrit au tournoi. Vous pouvez modifier vos informations si nécessaire.');
+            
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value) {
+                    isValid = false;
+                    field.style.borderColor = 'var(--danger)';
+                } else {
+                    field.style.borderColor = 'rgba(255, 255, 255, 0.2)';
                 }
-            } catch (error) {
-                console.error('Erreur vérification inscription:', error);
-            }
-        }
-
-        // Gestion du formulaire d'inscription
-        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+            });
             
-            const user = auth.currentUser;
-            if (!user) {
-                alert('Veuillez vous connecter d\'abord');
+            if (!isValid) {
+                showError('Veuillez remplir tous les champs obligatoires.');
+            } else if (isValid) {
+                hideError();
+            }
+            
+            return isValid;
+        }
+        
+        // Mise à jour du récapitulatif
+        function updateSummary() {
+            const summary = document.getElementById('summary');
+            const data = {
+                lastName: document.getElementById('lastName').value,
+                firstName: document.getElementById('firstName').value,
+                class: document.getElementById('class').value,
+                trophies: document.getElementById('trophies').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                membership: document.getElementById('membership').value,
+                size: document.getElementById('size').value,
+                gender: document.getElementById('gender').value,
+                color: document.getElementById('color').value
+            };
+            
+            summary.innerHTML = `
+                <p><strong>Nom:</strong> ${data.lastName}</p>
+                <p><strong>Prénom:</strong> ${data.firstName}</p>
+                <p><strong>Classe:</strong> ${data.class}</p>
+                <p><strong>Trophées:</strong> ${data.trophies}</p>
+                <p><strong>Téléphone:</strong> ${data.phone}</p>
+                <p><strong>Email:</strong> ${data.email}</p>
+                <p><strong>N° MDL:</strong> ${data.membership}</p>
+                <p><strong>Taille maillot:</strong> ${data.size}</p>
+                <p><strong>Sexe:</strong> ${data.gender}</p>
+                <p><strong>Couleur:</strong> ${data.color}</p>
+            `;
+        }
+        
+        // Gestion de la soumission finale
+        document.getElementById('submitBtn').addEventListener('click', async function() {
+            if (!document.getElementById('terms').checked) {
+                showError('Veuillez accepter les conditions d\'utilisation.');
                 return;
             }
-
-            const registrationData = {
-                firstName: document.getElementById('firstName').value,
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi de la vérification...';
+            submitBtn.disabled = true;
+            
+            // Récupérer les données du formulaire
+            const formData = {
                 lastName: document.getElementById('lastName').value,
-                class: document.getElementById('playerClass').value,
+                firstName: document.getElementById('firstName').value,
+                class: document.getElementById('class').value,
                 trophies: parseInt(document.getElementById('trophies').value),
                 phone: document.getElementById('phone').value,
-                email: user.email,
+                email: document.getElementById('email').value,
                 membership: document.getElementById('membership').value,
-                size: document.getElementById('tshirtSize').value,
+                size: document.getElementById('size').value,
                 gender: document.getElementById('gender').value,
-                color: document.getElementById('tshirtColor').value,
-                uid: user.uid,
-                timestamp: new Date()
+                color: document.getElementById('color').value
             };
-
+            
             try {
-                await db.collection('registrations').doc(user.uid).set(registrationData);
-                alert('Inscription réussie! Merci pour votre participation au tournoi.');
+                // Envoyer l'email de vérification
+                const result = await saveInscription(formData);
+                
+                if (result.success) {
+                    showInfo(result.message);
+                    
+                    // Réinitialisation après 8 secondes
+                    setTimeout(() => {
+                        document.querySelectorAll('input, select').forEach(field => {
+                            if (field.type !== 'button' && field.type !== 'submit') {
+                                field.value = '';
+                            }
+                        });
+                        document.querySelectorAll('.color-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        document.querySelector('.color-blue').classList.add('selected');
+                        document.getElementById('color').value = 'bleu';
+                        document.getElementById('terms').checked = false;
+                        
+                        showStep(1);
+                        hideInfo();
+                    }, 8000);
+                } else {
+                    showError(result.message);
+                }
             } catch (error) {
-                console.error('Erreur inscription:', error);
-                alert('Erreur lors de l\'inscription: ' + error.message);
+                showError('Erreur technique. Veuillez réessayer.');
+            } finally {
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Finaliser l\'inscription';
+                submitBtn.disabled = false;
             }
+        });
+        
+        function showSuccess(message) {
+            document.getElementById('successText').textContent = message;
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('infoMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        function showInfo(message) {
+            document.getElementById('infoText').textContent = message;
+            document.getElementById('infoMessage').style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        function hideInfo() {
+            document.getElementById('infoMessage').style.display = 'none';
+        }
+        
+        function hideSuccess() {
+            document.getElementById('successMessage').style.display = 'none';
+        }
+        
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('infoMessage').style.display = 'none';
+        }
+        
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        // Initialisation au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Firebase Realtime Database et Authentication initialisés !");
+            
+            // Animation d'entrée
+            const elements = document.querySelectorAll('.card, .form-step');
+            elements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+        
+        // Styles initiaux pour l'animation
+        document.querySelectorAll('.card, .form-step').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
         });
     </script>
 </body>
