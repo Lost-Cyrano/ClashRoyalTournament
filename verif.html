@@ -4,195 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vérification d'email - Tournoi Clash Royal</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <style>
-        :root {
-            --primary: #ffcc00;
-            --secondary: #8a2be2;
-            --dark: #1a1a2e;
-            --light: #f8f9fa;
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: url('https://lost-cyrano.github.io/ClashRoyalTournament/background.jpeg') no-repeat center center fixed;
-            background-size: cover;
-            color: var(--light);
-            line-height: 1.6;
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(26, 26, 46, 0.85);
-            z-index: -1;
-        }
-        
         .container {
-            width: 90%;
-            max-width: 600px;
-            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 500px;
         }
-        
-        .logo-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-        
-        .logo-title {
-            width: 100%;
-            max-width: 400px;
-            margin-bottom: 1rem;
-        }
-        
-        h1 {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            color: var(--primary);
-        }
-        
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 3rem 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            border: 2px solid var(--primary);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-        }
-        
-        .icon {
-            font-size: 4rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .success .icon {
-            color: var(--success);
-        }
-        
-        .error .icon {
-            color: var(--danger);
-        }
-        
-        .loading .icon {
-            color: var(--primary);
-        }
-        
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            background: linear-gradient(to right, var(--primary), #ffaa00);
-            color: var(--dark);
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .loading { color: #007bff; }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            margin-top: 1.5rem;
+            margin: 10px;
         }
-        
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .spinner {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        button:hover { background: #0056b3; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo-container">
-            <img src="https://lost-cyrano.github.io/ClashRoyalTournament/images__4_-removebg-preview.png" alt="Clash Royal" class="logo-title">
-        </div>
-        
         <h1>Vérification d'email</h1>
-        
-        <!-- État de chargement -->
-        <div class="card loading" id="loadingState">
-            <div class="icon">
-                <i class="fas fa-spinner spinner"></i>
+        <div id="verification-message">
+            <p id="status-message" class="loading">Vérification en cours...</p>
+            <div id="success-section" style="display: none;">
+                <p class="success">✅ Vérification réussie!</p>
+                <p>Vous allez être redirigé vers la page d'accueil.</p>
+                <button onclick="redirectToHome()">Aller à l'accueil maintenant</button>
             </div>
-            <h2>Vérification en cours...</h2>
-            <p>Veuillez patienter pendant que nous vérifions votre email.</p>
-        </div>
-        
-        <!-- État de succès -->
-        <div class="card success hidden" id="successState">
-            <div class="icon">
-                <i class="fas fa-check-circle"></i>
+            <div id="error-section" style="display: none;">
+                <p class="error">❌ Erreur de vérification</p>
+                <p id="error-details"></p>
+                <button onclick="redirectToHome()">Retour à l'accueil</button>
             </div>
-            <h2>Email Vérifié !</h2>
-            <p id="successMessage">Votre inscription au tournoi Clash Royal a été confirmée avec succès.</p>
-            <a href="index.html" class="btn">
-                <i class="fas fa-home"></i> Retour à l'accueil
-            </a>
-        </div>
-        
-        <!-- État d'erreur -->
-        <div class="card error hidden" id="errorState">
-            <div class="icon">
-                <i class="fas fa-exclamation-triangle"></i>
+            <div id="email-prompt" style="display: none;">
+                <p>Veuillez confirmer votre adresse email pour finaliser la connexion:</p>
+                <input type="email" id="email-input" placeholder="votre@email.com">
+                <button onclick="confirmEmail()">Confirmer</button>
             </div>
-            <h2>Erreur de vérification</h2>
-            <p id="errorMessage">Une erreur s'est produite lors de la vérification de votre email.</p>
-            <a href="index.html" class="btn">
-                <i class="fas fa-home"></i> Retour à l'accueil
-            </a>
         </div>
     </div>
 
@@ -200,123 +67,107 @@
         // Configuration Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAVR2UZVvlW6OAHf43iznqoErojYLCInbY",
-            authDomain: "clashroyaltournament-e3a4f.firebaseapp.com",
-            databaseURL: "https://clashroyaltournament-e3a4f-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "clashroyaltournament-e3a4f",
-            storageBucket: "clashroyaltournament-e3a4f.firebasestorage.app",
-            messagingSenderId: "903714952350",
-            appId: "1:903714952350:web:076d357cab70ccfd0dd78f"
+            authDomain: "clashroyaltournament-5d1d7.firebaseapp.com",
+            projectId: "clashroyaltournament-5d1d7",
+            storageBucket: "clashroyaltournament-5d1d7.firebasestorage.app",
+            messagingSenderId: "522424",
+            appId: "1:522424:web:b4d9b2a9c3c0c0c0c0c0c0"
         };
 
         // Initialiser Firebase
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
         const auth = firebase.auth();
 
-        // Fonction pour décoder les données base64 URL-safe
-        function decodeData(encodedData) {
+        // Fonction de redirection
+        function redirectToHome() {
+            window.location.href = 'https://lost-cyrano.github.io/ClashRoyalTournament/';
+        }
+
+        // Fonction pour confirmer l'email
+        async function confirmEmail() {
+            const email = document.getElementById('email-input').value;
+            if (!email) {
+                alert('Veuillez saisir votre email');
+                return;
+            }
+
             try {
-                // Remplacer les caractères URL-safe
-                const base64 = encodedData.replace(/-/g, '+').replace(/_/g, '/');
-                // Ajouter le padding si nécessaire
-                const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
-                const jsonString = decodeURIComponent(escape(atob(padded)));
-                return JSON.parse(jsonString);
+                document.getElementById('status-message').textContent = 'Connexion en cours...';
+                document.getElementById('email-prompt').style.display = 'none';
+
+                // Effectuer la connexion avec le lien
+                const result = await auth.signInWithEmailLink(email, window.location.href);
+                
+                // Supprimer l'email sauvegardé
+                window.localStorage.removeItem('emailForSignIn');
+                
+                showSuccess();
             } catch (error) {
-                throw new Error("Données corrompues");
+                showError(error.message);
             }
         }
 
-        // Fonction pour finaliser l'inscription
-        async function completeInscription(userData) {
-            try {
-                // Préparer les données finales
-                const finalData = {
-                    ...userData,
-                    emailVerified: true,
-                    verifiedTimestamp: new Date().toISOString(),
-                    status: 'confirmed'
-                };
-
-                // Sauvegarder dans la base de données
-                await database.ref('inscriptions/' + userData.uid).set(finalData);
-
-                return { 
-                    success: true, 
-                    message: "Félicitations ! Votre inscription au tournoi Clash Royal a été confirmée avec succès." 
-                };
-            } catch (error) {
-                console.error("Erreur lors de la finalisation de l'inscription:", error);
-                return { 
-                    success: false, 
-                    message: "Erreur lors de la finalisation de l'inscription." 
-                };
-            }
+        // Afficher le succès
+        function showSuccess() {
+            document.getElementById('status-message').style.display = 'none';
+            document.getElementById('success-section').style.display = 'block';
+            
+            // Redirection automatique après 3 secondes
+            setTimeout(redirectToHome, 3000);
         }
 
-        // Fonction pour vérifier l'email et finaliser l'inscription
-        async function verifyEmailAndCompleteInscription(userData) {
-            try {
-                // Vérifier l'état d'authentification
-                auth.onAuthStateChanged(async (user) => {
-                    if (user) {
-                        // Recharger pour vérifier l'état de l'email
-                        await user.reload();
-                        
-                        if (user.emailVerified) {
-                            // Email vérifié, finaliser l'inscription
-                            const result = await completeInscription(userData);
-                            
-                            if (result.success) {
-                                // Afficher le message de succès
-                                document.getElementById('loadingState').classList.add('hidden');
-                                document.getElementById('successState').classList.remove('hidden');
-                                document.getElementById('successMessage').textContent = result.message;
-                            } else {
-                                throw new Error(result.message);
-                            }
-                        } else {
-                            throw new Error("Email non vérifié");
-                        }
-                        
-                        // Déconnecter l'utilisateur
-                        await auth.signOut();
-                    } else {
-                        throw new Error("Utilisateur non authentifié");
-                    }
-                });
-            } catch (error) {
-                console.error("Erreur de vérification:", error);
-                document.getElementById('loadingState').classList.add('hidden');
-                document.getElementById('errorState').classList.remove('hidden');
-                document.getElementById('errorMessage').textContent = error.message;
-            }
+        // Afficher l'erreur
+        function showError(message) {
+            document.getElementById('status-message').style.display = 'none';
+            document.getElementById('error-section').style.display = 'block';
+            document.getElementById('error-details').textContent = message;
         }
 
-        // Initialisation au chargement
-        document.addEventListener('DOMContentLoaded', async function() {
+        // Traitement principal de vérification
+        async function handleVerification() {
             try {
-                // Récupérer les données de l'URL
                 const urlParams = new URLSearchParams(window.location.search);
-                const encodedData = urlParams.get('data');
-                
-                if (!encodedData) {
-                    throw new Error("Aucune donnée d'inscription trouvée");
+                const mode = urlParams.get('mode');
+                const oobCode = urlParams.get('oobCode');
+                const apiKey = urlParams.get('apiKey');
+
+                console.log('Paramètres reçus:', { mode, oobCode, apiKey });
+
+                if (mode === 'verifyEmail' && oobCode) {
+                    // Vérification d'email standard (pour les nouvelles inscriptions)
+                    document.getElementById('status-message').textContent = 'Vérification de votre adresse email...';
+                    
+                    // Appliquer le code de vérification
+                    await auth.applyActionCode(oobCode);
+                    showSuccess();
+                    
+                } else if (auth.isSignInWithEmailLink(window.location.href)) {
+                    // Connexion sans mot de passe
+                    let email = window.localStorage.getItem('emailForSignIn');
+                    
+                    if (email) {
+                        // Email trouvé en localStorage, procéder directement
+                        document.getElementById('status-message').textContent = 'Connexion en cours...';
+                        
+                        const result = await auth.signInWithEmailLink(email, window.location.href);
+                        window.localStorage.removeItem('emailForSignIn');
+                        showSuccess();
+                    } else {
+                        // Demander l'email à l'utilisateur
+                        document.getElementById('status-message').style.display = 'none';
+                        document.getElementById('email-prompt').style.display = 'block';
+                    }
+                } else {
+                    showError('Lien de vérification invalide ou expiré.');
                 }
-                
-                // Décoder les données
-                const userData = decodeData(encodedData);
-                
-                // Vérifier et finaliser l'inscription
-                await verifyEmailAndCompleteInscription(userData);
-                
             } catch (error) {
-                console.error("Erreur:", error);
-                document.getElementById('loadingState').classList.add('hidden');
-                document.getElementById('errorState').classList.remove('hidden');
-                document.getElementById('errorMessage').textContent = error.message;
+                console.error('Erreur de vérification:', error);
+                showError(error.message);
             }
-        });
+        }
+
+        // Démarrer le processus au chargement de la page
+        document.addEventListener('DOMContentLoaded', handleVerification);
     </script>
 </body>
 </html>
