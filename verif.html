@@ -228,8 +228,16 @@
         }
 
         // Fonction pour appliquer la vérification d'email
-        async function applyEmailVerification(oobCode) {
+        async function applyEmailVerification() {
             try {
+                // Récupérer le code de vérification depuis l'URL Firebase
+                const urlParams = new URLSearchParams(window.location.search);
+                const oobCode = urlParams.get('oobCode');
+                
+                if (!oobCode) {
+                    throw new Error("Code de vérification manquant");
+                }
+
                 // Appliquer le code de vérification
                 await auth.applyActionCode(oobCode);
                 return { success: true };
@@ -245,19 +253,28 @@
         // Fonction pour finaliser l'inscription
         async function completeInscription(userData) {
             try {
-                // Préparer les données finales
+                // Vérifier que l'email est bien vérifié
+                const user = auth.currentUser;
+                if (user) {
+                    await user.reload();
+                    if (!user.emailVerified) {
+                        throw new Error("L'email n'est pas encore vérifié");
+                    }
+                }
+
+                // Préparer les données finales avec un ID unique
+                const inscriptionId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+                
                 const finalData = {
                     ...userData,
+                    inscriptionId: inscriptionId,
                     emailVerified: true,
                     verifiedTimestamp: new Date().toISOString(),
                     status: 'confirmed'
                 };
 
                 // Sauvegarder dans la base de données
-                await database.ref('inscriptions/' + userData.uid).set(finalData);
-
-                // Supprimer de la liste d'attente
-                await database.ref('pending_inscriptions/' + userData.uid).remove();
+                await database.ref('inscriptions/' + inscriptionId).set(finalData);
 
                 return { 
                     success: true, 
@@ -277,26 +294,21 @@
             try {
                 // Récupérer les paramètres de l'URL
                 const urlParams = new URLSearchParams(window.location.search);
-                const oobCode = urlParams.get('oobCode');
                 const encodedData = urlParams.get('data');
-
-                if (!oobCode) {
-                    throw new Error("Code de vérification manquant");
-                }
 
                 if (!encodedData) {
                     throw new Error("Données d'inscription manquantes");
                 }
 
+                // Décoder les données
+                const userData = decodeData(encodedData);
+
                 // Appliquer la vérification d'email
-                const verificationResult = await applyEmailVerification(oobCode);
+                const verificationResult = await applyEmailVerification();
                 
                 if (!verificationResult.success) {
                     throw new Error(verificationResult.message);
                 }
-
-                // Décoder les données
-                const userData = decodeData(encodedData);
 
                 // Finaliser l'inscription
                 const inscriptionResult = await completeInscription(userData);
