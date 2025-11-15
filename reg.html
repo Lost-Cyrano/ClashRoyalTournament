@@ -414,7 +414,7 @@
                 
                 <div class="form-group">
                     <label for="trophies">Nombre de trophées Clash Royal</label>
-                    <input type="number" id="trophies" min="0" max="100000" placeholder="Ex: 6500" required>
+                    <input type="number" id="trophies" min="0" max="10000" placeholder="Ex: 4500" required>
                     <div class="trophy-info">
                         <i class="fas fa-info-circle"></i>
                         <span>Vous pouvez trouver ce nombre dans votre profil Clash Royal</span>
@@ -443,7 +443,7 @@
                 
                 <div class="form-group">
                     <label for="email">Adresse email</label>
-                    <input type="email" id="email" placeholder="Ex: nom.prenom@gmail.com" required>
+                    <input type="email" id="email" placeholder="Ex: anaelmaire.pro@gmail.com" required>
                 </div>
                 
                 <div class="form-group">
@@ -586,6 +586,13 @@
         const steps = document.querySelectorAll('.form-step');
         const stepIndicators = document.querySelectorAll('.step');
         
+        // Fonction pour encoder les données en base64 URL-safe
+        function encodeData(data) {
+            const jsonString = JSON.stringify(data);
+            const base64 = btoa(unescape(encodeURIComponent(jsonString)));
+            return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        }
+        
         // Fonction pour créer un compte temporaire et envoyer l'email de vérification
         async function sendVerificationEmail(email, userData) {
             try {
@@ -596,27 +603,25 @@
                 const userCredential = await auth.createUserWithEmailAndPassword(email, temporaryPassword);
                 const user = userCredential.user;
                 
-                // Préparer l'URL de continuation avec les données encodées
-                const continueUrl = `${window.location.origin}${window.location.pathname}?action=complete_inscription`;
+                // Encoder les données pour l'URL
+                const encodedData = encodeData({
+                    ...userData,
+                    uid: user.uid,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Construire l'URL de vérification
+                const baseUrl = window.location.origin;
+                const verificationUrl = `${baseUrl}/verif.html?data=${encodedData}`;
                 
                 // Configuration d'action pour Firebase
                 const actionCodeSettings = {
-                    url: continueUrl,
+                    url: verificationUrl,
                     handleCodeInApp: true
                 };
                 
                 // Envoyer l'email de vérification avec l'URL personnalisée
                 await user.sendEmailVerification(actionCodeSettings);
-                
-                // Stocker temporairement les données dans le localStorage
-                const pendingInscription = {
-                    ...userData,
-                    uid: user.uid,
-                    temporaryPassword: temporaryPassword,
-                    timestamp: new Date().toISOString()
-                };
-                
-                localStorage.setItem('pending_inscription', JSON.stringify(pendingInscription));
                 
                 // Déconnecter l'utilisateur
                 await auth.signOut();
@@ -648,100 +653,13 @@
                 };
             }
         }
-
-        // Fonction pour finaliser l'inscription après vérification d'email
-        async function completeInscription(user) {
-            try {
-                // Récupérer les données du localStorage
-                const pendingData = localStorage.getItem('pending_inscription');
-                
-                if (!pendingData) {
-                    throw new Error("Aucune donnée d'inscription trouvée.");
-                }
-                
-                const userData = JSON.parse(pendingData);
-                
-                // Vérifier que l'UID correspond
-                if (userData.uid !== user.uid) {
-                    throw new Error("Erreur de correspondance des données.");
-                }
-                
-                // Préparer les données finales
-                const finalData = {
-                    ...userData,
-                    emailVerified: true,
-                    verifiedTimestamp: new Date().toISOString(),
-                    status: 'confirmed'
-                };
-                
-                // Supprimer le mot de passe temporaire des données sauvegardées
-                delete finalData.temporaryPassword;
-                
-                // Sauvegarder dans la base de données
-                await database.ref('inscriptions/' + user.uid).set(finalData);
-                
-                // Nettoyer le localStorage
-                localStorage.removeItem('pending_inscription');
-                
-                return { 
-                    success: true, 
-                    message: "Félicitations ! Votre inscription au tournoi Clash Royal a été confirmée avec succès." 
-                };
-            } catch (error) {
-                console.error("Erreur lors de la finalisation de l'inscription:", error);
-                return { 
-                    success: false, 
-                    message: "Erreur lors de la finalisation de l'inscription." 
-                };
-            }
-        }
-
-        // Vérifier si on arrive depuis un lien de vérification d'email
-        function checkEmailVerification() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const action = urlParams.get('action');
-            
-            if (action === 'complete_inscription') {
-                // Vérifier l'état d'authentification
-                auth.onAuthStateChanged(async (user) => {
-                    if (user) {
-                        // Recharger pour vérifier l'état de l'email
-                        await user.reload();
-                        
-                        if (user.emailVerified) {
-                            // Email vérifié, finaliser l'inscription
-                            const result = await completeInscription(user);
-                            
-                            if (result.success) {
-                                // Afficher le message de succès
-                                document.getElementById('mainCard').innerHTML = `
-                                    <div style="text-align: center; padding: 2rem;">
-                                        <div style="font-size: 4rem; color: var(--success); margin-bottom: 1rem;">
-                                            <i class="fas fa-check-circle"></i>
-                                        </div>
-                                        <h2 style="color: var(--primary); margin-bottom: 1rem;">Inscription Confirmée !</h2>
-                                        <p style="margin-bottom: 2rem;">${result.message}</p>
-                                        <button class="btn" onclick="window.location.href = window.location.origin + window.location.pathname">
-                                            <i class="fas fa-home"></i> Retour à l'accueil
-                                        </button>
-                                    </div>
-                                `;
-                            }
-                        }
-                        
-                        // Déconnecter l'utilisateur dans tous les cas
-                        await auth.signOut();
-                    }
-                });
-            }
-        }
         
         // Fonction pour sauvegarder l'inscription
         async function saveInscription(data) {
             try {
                 const email = data.email;
                 
-                // Envoyer l'email de vérification
+                // Envoyer l'email de vérification avec les données encodées
                 const result = await sendVerificationEmail(email, data);
                 return result;
                 
@@ -977,9 +895,6 @@
         // Initialisation au chargement
         document.addEventListener('DOMContentLoaded', function() {
             console.log("Firebase Realtime Database et Authentication initialisés !");
-            
-            // Vérifier si on arrive d'un lien de vérification d'email
-            checkEmailVerification();
             
             // Animation d'entrée
             const elements = document.querySelectorAll('.card, .form-step');
