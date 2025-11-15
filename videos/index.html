@@ -192,10 +192,9 @@
         }
         
         .video-player {
-            height: 720px; /* Hauteur fixe de 720px */
-            width: auto;
-            max-width: 100%;
-            object-fit: cover; /* Zoom pour remplir la hauteur */
+            width: 100%; /* Pleine largeur */
+            height: 100%; /* Pleine hauteur */
+            object-fit: cover; /* Remplit tout l'écran sans bandes noires */
         }
         
         .player-name {
@@ -299,18 +298,6 @@
             
             .player-name {
                 font-size: 2.5rem;
-            }
-            
-            .video-player {
-                height: 400px; /* Réduction pour très petits écrans */
-            }
-        }
-        
-        /* Adaptation pour écrans plus petits que 720px de hauteur */
-        @media (max-height: 720px) {
-            .video-player {
-                height: 100vh; /* Utilise toute la hauteur de l'écran */
-                width: auto;
             }
         }
     </style>
