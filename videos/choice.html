@@ -1157,6 +1157,16 @@
                     }
                     
                     this.currentUserSelection = filename;
+
+                    // Journaliser l'action
+                    const logRef = firebase.database().ref('logs/' + Date.now());
+                    await logRef.set({
+                        timestamp: Date.now(),
+                        action: 'video_selection',
+                        userEmail: this.currentUser.email,
+                        pageSource: 'choice_page',
+                        videoSelected: filename
+                    });
                     
                     // Mettre à jour l'interface
                     this.updateAvailableVideos();
@@ -1172,6 +1182,18 @@
                     
                 } catch (error) {
                     console.error('Erreur lors de la sauvegarde:', error);
+                    
+                    // Journaliser l'action
+                    const logRef = firebase.database().ref('logs/' + Date.now());
+                    await logRef.set({
+                        timestamp: Date.now(),
+                        action: 'video_selection',
+                        userEmail: this.currentUser.email,
+                        pageSource: 'choice_page',
+                        videoSelected: filename
+                    });
+
+                    
                     this.showConfirmation('Erreur lors de la sélection de la vidéo', 'error');
                 }
             }
