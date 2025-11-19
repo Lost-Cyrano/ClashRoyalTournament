@@ -212,281 +212,312 @@
     </div>
 
     <script>
-        // Configuration Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyAVR2UZVvlW6OAHf43iznqoErojYLCInbY",
-            authDomain: "clashroyaltournament-e3a4f.firebaseapp.com",
-            databaseURL: "https://clashroyaltournament-e3a4f-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "clashroyaltournament-e3a4f",
-            storageBucket: "clashroyaltournament-e3a4f.firebasestorage.app",
-            messagingSenderId: "903714952350",
-            appId: "1:903714952350:web:076d357cab70ccfd0dd78f"
-        };
+    // Configuration Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyAVR2UZVvlW6OAHf43iznqoErojYLCInbY",
+        authDomain: "clashroyaltournament-e3a4f.firebaseapp.com",
+        databaseURL: "https://clashroyaltournament-e3a4f-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "clashroyaltournament-e3a4f",
+        storageBucket: "clashroyaltournament-e3a4f.firebasestorage.app",
+        messagingSenderId: "903714952350",
+        appId: "1:903714952350:web:076d357cab70ccfd0dd78f"
+    };
 
-        // Initialiser Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const auth = firebase.auth();
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const auth = firebase.auth();
 
-        // Fonction pour décoder les données base64 URL-safe
-        function decodeData(encodedData) {
-            try {
-                // Remplacer les caractères URL-safe
-                const base64 = encodedData.replace(/-/g, '+').replace(/_/g, '/');
-                // Ajouter le padding si nécessaire
-                const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
-                const jsonString = decodeURIComponent(escape(atob(padded)));
-                return JSON.parse(jsonString);
-            } catch (error) {
-                throw new Error("Données corrompues");
-            }
+    // Fonction pour décoder les données base64 URL-safe
+    function decodeData(encodedData) {
+        try {
+            // Remplacer les caractères URL-safe
+            const base64 = encodedData.replace(/-/g, '+').replace(/_/g, '/');
+            // Ajouter le padding si nécessaire
+            const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
+            const jsonString = decodeURIComponent(escape(atob(padded)));
+            return JSON.parse(jsonString);
+        } catch (error) {
+            throw new Error("Données corrompues");
         }
+    }
 
-        // Fonction pour extraire les données de l'URL Firebase (pour l'inscription)
-        function extractDataFromFirebaseUrl() {
-            try {
-                // Récupérer le paramètre continueUrl de l'URL Firebase
-                const urlParams = new URLSearchParams(window.location.search);
-                const continueUrl = urlParams.get('continueUrl');
-                
-                if (!continueUrl) {
-                    throw new Error("Paramètre continueUrl manquant");
-                }
-
-                // Décoder l'URL (elle est encodée en URL)
-                const decodedContinueUrl = decodeURIComponent(continueUrl);
-                
-                // Extraire le paramètre data de l'URL décodée
-                const continueUrlParams = new URLSearchParams(new URL(decodedContinueUrl).search);
-                const encodedData = continueUrlParams.get('data');
-                
-                if (!encodedData) {
-                    throw new Error("Données d'inscription manquantes dans continueUrl");
-                }
-
-                // Décoder les données
-                return decodeData(encodedData);
-                
-            } catch (error) {
-                console.error("Erreur lors de l'extraction des données:", error);
-                throw new Error("Impossible de récupérer les données d'inscription");
-            }
-        }
-
-        // Fonction pour appliquer la vérification d'email
-        async function applyEmailVerification() {
-            try {
-                // Récupérer le code de vérification depuis l'URL Firebase
-                const urlParams = new URLSearchParams(window.location.search);
-                const oobCode = urlParams.get('oobCode');
-                
-                if (!oobCode) {
-                    throw new Error("Code de vérification manquant");
-                }
-
-                // Appliquer le code de vérification
-                await auth.applyActionCode(oobCode);
-                return { success: true };
-            } catch (error) {
-                console.error("Erreur lors de la vérification:", error);
-                return { 
-                    success: false, 
-                    message: "Le lien de vérification est invalide ou a expiré." 
-                };
-            }
-        }
-
-        // Fonction pour gérer la connexion par lien magique
-        async function handleSignInWithEmailLink() {
-            try {
-                // Récupérer l'email stocké localement
-                const email = window.localStorage.getItem('emailForSignIn');
-                
-                if (!email) {
-                    throw new Error("Aucune session de connexion trouvée. Veuillez redémarrer le processus de connexion.");
-                }
-
-                // Vérifier si c'est un lien de connexion valide
-                if (!auth.isSignInWithEmailLink(window.location.href)) {
-                    throw new Error("Ce lien de connexion n'est pas valide.");
-                }
-
-                // Effectuer la connexion
-                const result = await auth.signInWithEmailLink(email, window.location.href);
-                
-                // Nettoyer l'email stocké
-                window.localStorage.removeItem('emailForSignIn');
-                
-                return { 
-                    success: true, 
-                    user: result.user 
-                };
-            } catch (error) {
-                console.error("Erreur lors de la connexion:", error);
-                return { 
-                    success: false, 
-                    message: error.message 
-                };
-            }
-        }
-
-        // Fonction pour déterminer le type d'action (inscription ou connexion)
-        function determineActionType() {
+    // Fonction pour extraire les données de l'URL Firebase (pour l'inscription)
+    function extractDataFromFirebaseUrl() {
+        try {
+            // Récupérer le paramètre continueUrl de l'URL Firebase
             const urlParams = new URLSearchParams(window.location.search);
+            const continueUrl = urlParams.get('continueUrl');
             
-            // Vérifier si c'est un lien de connexion
-            if (auth.isSignInWithEmailLink(window.location.href)) {
-                return 'connexion';
+            if (!continueUrl) {
+                throw new Error("Paramètre continueUrl manquant");
             }
+
+            // Décoder l'URL (elle est encodée en URL)
+            const decodedContinueUrl = decodeURIComponent(continueUrl);
             
-            // Vérifier si c'est une vérification d'email classique
+            // Extraire le paramètre data de l'URL décodée
+            const continueUrlParams = new URLSearchParams(new URL(decodedContinueUrl).search);
+            const encodedData = continueUrlParams.get('data');
+            
+            if (!encodedData) {
+                throw new Error("Données d'inscription manquantes dans continueUrl");
+            }
+
+            // Décoder les données
+            return decodeData(encodedData);
+            
+        } catch (error) {
+            console.error("Erreur lors de l'extraction des données:", error);
+            throw new Error("Impossible de récupérer les données d'inscription");
+        }
+    }
+
+    // Fonction pour appliquer la vérification d'email
+    async function applyEmailVerification() {
+        try {
+            // Récupérer le code de vérification depuis l'URL Firebase
+            const urlParams = new URLSearchParams(window.location.search);
             const oobCode = urlParams.get('oobCode');
-            const mode = urlParams.get('mode');
             
-            if (oobCode && mode === 'verifyEmail') {
-                return 'inscription';
+            if (!oobCode) {
+                throw new Error("Code de vérification manquant");
+            }
+
+            // Appliquer le code de vérification
+            await auth.applyActionCode(oobCode);
+            return { success: true };
+        } catch (error) {
+            console.error("Erreur lors de la vérification:", error);
+            return { 
+                success: false, 
+                message: "Le lien de vérification est invalide ou a expiré." 
+            };
+        }
+    }
+
+    // Fonction pour gérer la connexion par lien magique
+    async function handleSignInWithEmailLink() {
+        try {
+            // Récupérer l'email stocké localement
+            const email = window.localStorage.getItem('emailForSignIn');
+            
+            if (!email) {
+                throw new Error("Aucune session de connexion trouvée. Veuillez redémarrer le processus de connexion.");
+            }
+
+            // Vérifier si c'est un lien de connexion valide
+            if (!auth.isSignInWithEmailLink(window.location.href)) {
+                throw new Error("Ce lien de connexion n'est pas valide.");
+            }
+
+            // Effectuer la connexion
+            const result = await auth.signInWithEmailLink(email, window.location.href);
+            
+            // Nettoyer l'email stocké
+            window.localStorage.removeItem('emailForSignIn');
+            
+            return { 
+                success: true, 
+                user: result.user 
+            };
+        } catch (error) {
+            console.error("Erreur lors de la connexion:", error);
+            return { 
+                success: false, 
+                message: error.message 
+            };
+        }
+    }
+
+    // Fonction pour déterminer le type d'action (inscription ou connexion)
+    function determineActionType() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Vérifier si c'est un lien de connexion
+        if (auth.isSignInWithEmailLink(window.location.href)) {
+            return 'connexion';
+        }
+        
+        // Vérifier si c'est une vérification d'email classique
+        const oobCode = urlParams.get('oobCode');
+        const mode = urlParams.get('mode');
+        
+        if (oobCode && mode === 'verifyEmail') {
+            return 'inscription';
+        }
+        
+        return 'inconnu';
+    }
+
+    // Fonction pour finaliser l'inscription
+    async function completeInscription(userData) {
+        try {
+            // Vérifier que l'email est bien vérifié
+            const user = auth.currentUser;
+            if (user) {
+                await user.reload();
+                if (!user.emailVerified) {
+                    throw new Error("L'email n'est pas encore vérifié");
+                }
+            }
+
+            // Vérifier si l'email existe déjà dans la base
+            const emailSnapshot = await database.ref('inscriptions')
+                .orderByChild('email')
+                .equalTo(userData.email)
+                .once('value');
+            
+            if (emailSnapshot.exists()) {
+                throw new Error("Une inscription avec cet email existe déjà");
+            }
+
+            // Préparer les données finales avec un ID unique
+            const inscriptionId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+            
+            const finalData = {
+                ...userData,
+                inscriptionId: inscriptionId,
+                emailVerified: true,
+                verifiedTimestamp: new Date().toISOString(),
+                status: 'confirmed',
+                source: 'verif_page'
+            };
+
+            // Sauvegarder dans la base de données
+            await database.ref('inscriptions/' + inscriptionId).set(finalData);
+
+            // JOURNALISATION - Inscription réussie
+            try {
+                const logRef = database.ref('logs/' + Date.now());
+                await logRef.set({
+                    timestamp: Date.now(),
+                    action: 'email_verification_success',
+                    userEmail: userData.email,
+                    pageSource: 'verif_page',
+                    inscriptionId: inscriptionId
+                });
+                console.log("Journalisation de l'inscription réussie");
+            } catch (logError) {
+                console.warn("Erreur de journalisation:", logError);
+            }
+
+            return { 
+                success: true, 
+                message: "Félicitations ! Votre inscription au tournoi Clash Royal a été confirmée avec succès." 
+            };
+        } catch (error) {
+            console.error("Erreur lors de la finalisation de l'inscription:", error);
+            
+            // JOURNALISATION - Erreur d'inscription
+            try {
+                const logRef = database.ref('logs/' + Date.now());
+                await logRef.set({
+                    timestamp: Date.now(),
+                    action: 'email_verification_error',
+                    userEmail: userData.email,
+                    pageSource: 'verif_page',
+                    error: error.message
+                });
+            } catch (logError) {
+                console.warn("Erreur de journalisation d'erreur:", logError);
             }
             
-            return 'inconnu';
+            return { 
+                success: false, 
+                message: error.message 
+            };
         }
+    }
 
-        // Fonction pour finaliser l'inscription
-        async function completeInscription(userData) {
-            try {
-                // Vérifier que l'email est bien vérifié
-                const user = auth.currentUser;
-                if (user) {
-                    await user.reload();
-                    if (!user.emailVerified) {
-                        throw new Error("L'email n'est pas encore vérifié");
-                    }
-                }
+    // Fonction pour afficher l'état de succès de connexion
+    function showConnexionSuccess(user) {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('successConnexionState').classList.remove('hidden');
+        document.getElementById('successConnexionMessage').textContent = 
+            `Bienvenue ${user.email} ! Vous êtes maintenant connecté à votre compte.`;
+    }
 
-                // Vérifier si l'email existe déjà dans la base
-                const emailSnapshot = await database.ref('inscriptions')
-                    .orderByChild('email')
-                    .equalTo(userData.email)
-                    .once('value');
+    // Fonction pour afficher l'état de succès d'inscription
+    function showInscriptionSuccess(message) {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('successInscriptionState').classList.remove('hidden');
+        document.getElementById('successInscriptionMessage').textContent = message;
+    }
+
+    // Fonction pour afficher l'état d'erreur
+    function showError(message) {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('errorState').classList.remove('hidden');
+        document.getElementById('errorMessage').textContent = message;
+    }
+
+    // Fonction principale de vérification
+    async function processVerification() {
+        try {
+            console.log("Début du processus de vérification...");
+            
+            // Déterminer le type d'action
+            const actionType = determineActionType();
+            console.log("Type d'action détecté:", actionType);
+            
+            if (actionType === 'connexion') {
+                // Traitement pour la connexion par lien magique
+                console.log("Traitement de la connexion par lien magique...");
+                const connexionResult = await handleSignInWithEmailLink();
                 
-                if (emailSnapshot.exists()) {
-                    throw new Error("Une inscription avec cet email existe déjà");
-                }
-
-                // Préparer les données finales avec un ID unique
-                const inscriptionId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-                
-                const finalData = {
-                    ...userData,
-                    inscriptionId: inscriptionId,
-                    emailVerified: true,
-                    verifiedTimestamp: new Date().toISOString(),
-                    status: 'confirmed'
-                };
-
-                // Sauvegarder dans la base de données
-                await database.ref('inscriptions/' + inscriptionId).set(finalData);
-
-                return { 
-                    success: true, 
-                    message: "Félicitations ! Votre inscription au tournoi Clash Royal a été confirmée avec succès." 
-                };
-            } catch (error) {
-                console.error("Erreur lors de la finalisation de l'inscription:", error);
-                return { 
-                    success: false, 
-                    message: error.message 
-                };
-            }
-        }
-
-        // Fonction pour afficher l'état de succès de connexion
-        function showConnexionSuccess(user) {
-            document.getElementById('loadingState').classList.add('hidden');
-            document.getElementById('successConnexionState').classList.remove('hidden');
-            document.getElementById('successConnexionMessage').textContent = 
-                `Bienvenue ${user.email} ! Vous êtes maintenant connecté à votre compte.`;
-        }
-
-        // Fonction pour afficher l'état de succès d'inscription
-        function showInscriptionSuccess(message) {
-            document.getElementById('loadingState').classList.add('hidden');
-            document.getElementById('successInscriptionState').classList.remove('hidden');
-            document.getElementById('successInscriptionMessage').textContent = message;
-        }
-
-        // Fonction pour afficher l'état d'erreur
-        function showError(message) {
-            document.getElementById('loadingState').classList.add('hidden');
-            document.getElementById('errorState').classList.remove('hidden');
-            document.getElementById('errorMessage').textContent = message;
-        }
-
-        // Fonction principale de vérification
-        async function processVerification() {
-            try {
-                console.log("Début du processus de vérification...");
-                
-                // Déterminer le type d'action
-                const actionType = determineActionType();
-                console.log("Type d'action détecté:", actionType);
-                
-                if (actionType === 'connexion') {
-                    // Traitement pour la connexion par lien magique
-                    console.log("Traitement de la connexion par lien magique...");
-                    const connexionResult = await handleSignInWithEmailLink();
-                    
-                    if (connexionResult.success) {
-                        console.log("Connexion réussie:", connexionResult.user.email);
-                        showConnexionSuccess(connexionResult.user);
-                    } else {
-                        throw new Error(connexionResult.message);
-                    }
-                    
-                } else if (actionType === 'inscription') {
-                    // Traitement pour l'inscription classique
-                    console.log("Traitement de l'inscription...");
-                    
-                    // Étape 1: Extraire les données de l'URL Firebase
-                    console.log("Extraction des données depuis l'URL...");
-                    const userData = extractDataFromFirebaseUrl();
-                    console.log("Données extraites:", userData);
-
-                    // Étape 2: Appliquer la vérification d'email
-                    console.log("Application de la vérification d'email...");
-                    const verificationResult = await applyEmailVerification();
-                    
-                    if (!verificationResult.success) {
-                        throw new Error(verificationResult.message);
-                    }
-                    console.log("Email vérifié avec succès");
-
-                    // Étape 3: Finaliser l'inscription
-                    console.log("Finalisation de l'inscription...");
-                    const inscriptionResult = await completeInscription(userData);
-
-                    if (inscriptionResult.success) {
-                        showInscriptionSuccess(inscriptionResult.message);
-                        console.log("Inscription finalisée avec succès");
-                    } else {
-                        throw new Error(inscriptionResult.message);
-                    }
-                    
+                if (connexionResult.success) {
+                    console.log("Connexion réussie:", connexionResult.user.email);
+                    showConnexionSuccess(connexionResult.user);
                 } else {
-                    throw new Error("Type d'action non reconnu. Ce lien semble être invalide.");
+                    throw new Error(connexionResult.message);
                 }
                 
-            } catch (error) {
-                console.error("Erreur de vérification:", error);
-                showError(error.message);
-            }
-        }
+            } else if (actionType === 'inscription') {
+                // Traitement pour l'inscription classique
+                console.log("Traitement de l'inscription...");
+                
+                // Étape 1: Extraire les données de l'URL Firebase
+                console.log("Extraction des données depuis l'URL...");
+                const userData = extractDataFromFirebaseUrl();
+                console.log("Données extraites:", userData);
 
-        // Initialisation au chargement
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("URL complète:", window.location.href);
-            console.log("Paramètres URL:", window.location.search);
-            processVerification();
-        });
-    </script>
+                // Étape 2: Appliquer la vérification d'email
+                console.log("Application de la vérification d'email...");
+                const verificationResult = await applyEmailVerification();
+                
+                if (!verificationResult.success) {
+                    throw new Error(verificationResult.message);
+                }
+                console.log("Email vérifié avec succès");
+
+                // Étape 3: Finaliser l'inscription
+                console.log("Finalisation de l'inscription...");
+                const inscriptionResult = await completeInscription(userData);
+
+                if (inscriptionResult.success) {
+                    showInscriptionSuccess(inscriptionResult.message);
+                    console.log("Inscription finalisée avec succès");
+                } else {
+                    throw new Error(inscriptionResult.message);
+                }
+                
+            } else {
+                throw new Error("Type d'action non reconnu. Ce lien semble être invalide.");
+            }
+            
+        } catch (error) {
+            console.error("Erreur de vérification:", error);
+            showError(error.message);
+        }
+    }
+
+    // Initialisation au chargement
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("URL complète:", window.location.href);
+        console.log("Paramètres URL:", window.location.search);
+        processVerification();
+    });
+</script>
 </body>
 </html>
