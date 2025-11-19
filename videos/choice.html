@@ -786,6 +786,14 @@
             <div class="card">
                 <div class="stats">
                     <div class="stat-card">
+                        <div class="stat-number" id="totalVideos">0</div>
+                        <div class="stat-label">Vidéos disponibles</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="selectedCount">0</div>
+                        <div class="stat-label">Vidéos sélectionnées</div>
+                    </div>
+                    <div class="stat-card">
                         <div class="stat-number" id="remainingCount">0</div>
                         <div class="stat-label">Vidéos restantes</div>
                     </div>
@@ -972,7 +980,7 @@
                     
                     // Créer les objets vidéo avec les URLs raw
                     this.availableVideos = videoFiles.map(file => {
-                        const rawUrl = `https://lost-cyrano.github.io/ClashRoyalTournament/videos/bibli/${file.name}`;
+                        const rawUrl = `https://raw.githubusercontent.com/Lost-Cyrano/ClashRoyalTournament/main/videos/bibli/${file.name}`;
                         return {
                             filename: file.name,
                             url: rawUrl,
