@@ -386,11 +386,28 @@
                 // Sauvegarder dans la base de données
                 await database.ref('inscriptions/' + inscriptionId).set(finalData);
 
+                // Journaliser l'action
+                const logRef = firebase.database().ref('logs/' + Date.now());
+                await logRef.set({
+                      timestamp: Date.now(),
+                      action: 'email_verification_success',
+                      userEmail: userData.email,
+                      pageSource: 'verif_page'
+                });
+
                 return { 
                     success: true, 
                     message: "Félicitations ! Votre inscription au tournoi Clash Royal a été confirmée avec succès." 
                 };
             } catch (error) {
+                // Journaliser l'action
+                const logRef = firebase.database().ref('logs/' + Date.now());
+                await logRef.set({
+                  timestamp: Date.now(),
+                  action: 'email_verification_success',
+                  userEmail: userData.email,
+                  pageSource: 'verif_page'
+                });
                 console.error("Erreur lors de la finalisation de l'inscription:", error);
                 return { 
                     success: false, 
