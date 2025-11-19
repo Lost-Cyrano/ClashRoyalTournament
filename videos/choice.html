@@ -375,7 +375,7 @@
             line-height: 1.4;
         }
         
-        .video-filename {
+        .video-duration {
             font-size: 0.85rem;
             color: #aaa;
             margin-bottom: 0.5rem;
@@ -786,14 +786,6 @@
             <div class="card">
                 <div class="stats">
                     <div class="stat-card">
-                        <div class="stat-number" id="totalVideos">0</div>
-                        <div class="stat-label">Vidéos disponibles</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="selectedCount">0</div>
-                        <div class="stat-label">Vidéos sélectionnées</div>
-                    </div>
-                    <div class="stat-card">
                         <div class="stat-number" id="remainingCount">0</div>
                         <div class="stat-label">Vidéos restantes</div>
                     </div>
@@ -811,7 +803,7 @@
                         <div class="spinner">
                             <i class="fas fa-spinner"></i>
                         </div>
-                        <p>Chargement des vidéos depuis GitHub...</p>
+                        <p>Chargement des vidéos...</p>
                     </div>
                 </div>
             </div>
@@ -978,16 +970,18 @@
                     
                     console.log(`${videoFiles.length} vidéos MP4 trouvées sur GitHub`);
                     
-                    // Créer les objets vidéo avec les URLs raw
-                    this.availableVideos = videoFiles.map(file => {
-                        const rawUrl = `https://raw.githubusercontent.com/Lost-Cyrano/ClashRoyalTournament/main/videos/bibli/${file.name}`;
-                        return {
-                            filename: file.name,
-                            url: rawUrl,
-                            name: this.formatVideoName(file.name),
-                            size: this.formatFileSize(file.size)
-                        };
-                    });
+                    // Créer les objets vidéo avec les URLs corrigées
+                    this.availableVideos = await Promise.all(
+                        videoFiles.map(async (file) => {
+                            const videoUrl = `https://lost-cyrano.github.io/ClashRoyalTournament/videos/bibli/${file.name}`;
+                            return {
+                                filename: file.name,
+                                url: videoUrl,
+                                name: this.formatVideoName(file.name),
+                                duration: await this.getVideoDuration(videoUrl)
+                            };
+                        })
+                    );
                     
                     this.updateAvailableVideos();
                     
@@ -995,6 +989,20 @@
                     console.error('Erreur lors du chargement des vidéos depuis GitHub:', error);
                     this.showError('Impossible de charger les vidéos depuis GitHub');
                 }
+            }
+            
+            // Obtenir la durée d'une vidéo
+            async getVideoDuration(url) {
+                return new Promise((resolve) => {
+                    const video = document.createElement('video');
+                    video.src = url + '#t=0.1';
+                    video.addEventListener('loadedmetadata', () => {
+                        resolve(Math.round(video.duration));
+                    });
+                    video.addEventListener('error', () => {
+                        resolve(null); // Retourne null si impossible de récupérer la durée
+                    });
+                });
             }
             
             // Formater le nom de la vidéo pour l'affichage
@@ -1013,20 +1021,22 @@
                 return name;
             }
             
-            // Formater la taille du fichier
-            formatFileSize(bytes) {
-                if (bytes === 0) return '0 Bytes';
-                const k = 1024;
-                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            // Formater la durée en secondes
+            formatDuration(seconds) {
+                if (!seconds) return '';
+                if (seconds < 60) {
+                    return `${seconds}s`;
+                } else {
+                    const minutes = Math.floor(seconds / 60);
+                    const remainingSeconds = seconds % 60;
+                    return `${minutes}m${remainingSeconds}s`;
+                }
             }
             
             // Mettre à jour les statistiques
             updateStats() {
-                document.getElementById('totalVideos').textContent = this.availableVideos.length;
-                document.getElementById('selectedCount').textContent = this.selectedVideos.size;
-                document.getElementById('remainingCount').textContent = this.availableVideos.length - this.selectedVideos.size;
+                const remaining = this.availableVideos.length - this.selectedVideos.size;
+                document.getElementById('remainingCount').textContent = remaining;
             }
             
             // Afficher les vidéos disponibles
@@ -1078,7 +1088,7 @@
                         </div>
                         <div class="video-info">
                             <div class="video-title">${video.name}</div>
-                            <div class="video-filename">${video.size}</div>
+                            <div class="video-duration">${this.formatDuration(video.duration)}</div>
                         </div>
                         <div class="video-actions">
                             <button class="select-btn ${isSelectedByCurrentUser ? 'selected' : ''}" 
@@ -1109,7 +1119,7 @@
                 // Afficher un indicateur de chargement
                 modalVideo.style.opacity = '0';
                 
-                // Précharger la vidéo
+                // Utiliser l'URL corrigée pour la prévisualisation
                 modalVideo.src = video.url;
                 modalVideo.load();
                 
@@ -1157,16 +1167,6 @@
                     }
                     
                     this.currentUserSelection = filename;
-
-                    // Journaliser l'action
-                    const logRef = firebase.database().ref('logs/' + Date.now());
-                    await logRef.set({
-                        timestamp: Date.now(),
-                        action: 'video_selection',
-                        userEmail: this.currentUser.email,
-                        pageSource: 'choice_page',
-                        videoSelected: filename
-                    });
                     
                     // Mettre à jour l'interface
                     this.updateAvailableVideos();
@@ -1182,18 +1182,6 @@
                     
                 } catch (error) {
                     console.error('Erreur lors de la sauvegarde:', error);
-                    
-                    // Journaliser l'action
-                    const logRef = firebase.database().ref('logs/' + Date.now());
-                    await logRef.set({
-                        timestamp: Date.now(),
-                        action: 'video_selection',
-                        userEmail: this.currentUser.email,
-                        pageSource: 'choice_page',
-                        videoSelected: filename
-                    });
-
-                    
                     this.showConfirmation('Erreur lors de la sélection de la vidéo', 'error');
                 }
             }
