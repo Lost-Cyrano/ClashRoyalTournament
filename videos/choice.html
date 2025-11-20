@@ -1281,47 +1281,100 @@
             }
             
             // Gérer la connexion
-            async handleLogin() {
-                const email = document.getElementById('emailInput').value.trim();
-                const messageElement = document.getElementById('loginMessage');
-                
-                if (!email) {
-                    messageElement.textContent = 'Veuillez entrer votre adresse email';
-                    return;
-                }
-                
-                if (!this.isValidEmail(email)) {
-                    messageElement.textContent = 'Veuillez entrer une adresse email valide';
-                    return;
-                }
-                
-                try {
-                    messageElement.textContent = 'Envoi du lien de connexion...';
-                    messageElement.style.color = 'var(--primary)';
-                    
-                    const actionCodeSettings = {
-                        url: window.location.href,
-                        handleCodeInApp: true
-                    };
-                    
-                    await window.firebase.sendSignInLinkToEmail(
-                        window.firebase.auth, 
-                        email, 
-                        actionCodeSettings
-                    );
-                    
-                    // Stocker l'email localement
-                    window.localStorage.setItem('emailForSignIn', email);
-                    
-                    messageElement.textContent = 'Lien de connexion envoyé ! Vérifiez votre email.';
-                    messageElement.style.color = 'var(--success)';
-                    
-                } catch (error) {
-                    console.error('Erreur lors de l\'envoi du lien:', error);
-                    messageElement.textContent = 'Erreur lors de l\'envoi du lien. Veuillez réessayer.';
-                    messageElement.style.color = 'var(--danger)';
-                }
+async handleLogin() {
+    const email = document.getElementById('emailInput').value.trim();
+    const messageElement = document.getElementById('loginMessage');
+    
+    if (!email) {
+        messageElement.textContent = 'Veuillez entrer votre adresse email';
+        return;
+    }
+    
+    if (!this.isValidEmail(email)) {
+        messageElement.textContent = 'Veuillez entrer une adresse email valide';
+        return;
+    }
+    
+    try {
+        messageElement.textContent = 'Envoi du lien de connexion...';
+        messageElement.style.color = 'var(--primary)';
+        
+        // Configuration pour le lien de connexion
+        const actionCodeSettings = {
+            url: window.location.origin + window.location.pathname,
+            handleCodeInApp: true
+        };
+        
+        console.log('Envoi du lien à:', email);
+        
+        await window.firebase.sendSignInLinkToEmail(
+            window.firebase.auth, 
+            email, 
+            actionCodeSettings
+        );
+        
+        // Stocker l'email localement
+        window.localStorage.setItem('emailForSignIn', email);
+        
+        messageElement.textContent = 'Lien de connexion envoyé ! Vérifiez votre email (pensez à vérifier les spams).';
+        messageElement.style.color = 'var(--success)';
+        
+    } catch (error) {
+        console.error('Erreur détaillée lors de l\'envoi du lien:', error);
+        console.error('Code erreur:', error.code);
+        console.error('Message erreur:', error.message);
+        
+        let errorMessage = 'Erreur lors de l\'envoi du lien. ';
+        
+        switch (error.code) {
+            case 'auth/invalid-email':
+                errorMessage += 'Email invalide.';
+                break;
+            case 'auth/unauthorized-domain':
+                errorMessage += 'Domaine non autorisé. Vérifiez la configuration Firebase.';
+                break;
+            case 'auth/operation-not-allowed':
+                errorMessage += 'La connexion par email/lien n\'est pas activée. Vérifiez la console Firebase.';
+                break;
+            default:
+                errorMessage += 'Veuillez réessayer.';
+        }
+        
+        messageElement.textContent = errorMessage;
+        messageElement.style.color = 'var(--danger)';
+    }
+}
+
+            // Vérifier si on revient d'un lien de connexion
+async handleSignInRedirect() {
+    if (window.firebase.isSignInWithEmailLink(window.firebase.auth, window.location.href)) {
+        try {
+            let email = window.localStorage.getItem('emailForSignIn');
+            
+            if (!email) {
+                // Demander l'email à l'utilisateur
+                email = window.prompt('Veuillez confirmer votre email pour la connexion:');
             }
+            
+            if (email) {
+                const result = await window.firebase.signInWithEmailLink(
+                    window.firebase.auth, 
+                    email, 
+                    window.location.href
+                );
+                
+                // Nettoyer l'URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                window.localStorage.removeItem('emailForSignIn');
+                
+                console.log('Connexion réussie:', result.user.email);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la connexion avec le lien:', error);
+            this.showConfirmation('Erreur lors de la connexion', 'error');
+        }
+    }
+}
             
             // Gérer la déconnexion
             async handleLogout() {
