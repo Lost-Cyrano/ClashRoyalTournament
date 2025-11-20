@@ -886,14 +886,81 @@
                 });
             }
             
-            // Configurer l'écouteur d'authentification
+            // NOUVELLE MÉTHODE: Vérifier l'authentification via localStorage
+            checkLocalStorageAuth() {
+                const isAuthenticated = localStorage.getItem('userAuthenticated');
+                const userEmail = localStorage.getItem('userEmail');
+                const userUID = localStorage.getItem('userUID');
+                const authTimestamp = localStorage.getItem('authTimestamp');
+                
+                // Vérifier si l'authentification est récente (moins de 24h)
+                const isRecent = authTimestamp && (Date.now() - parseInt(authTimestamp)) < (24 * 60 * 60 * 1000);
+                
+                if (isAuthenticated === 'true' && userEmail && userUID && isRecent) {
+                    return {
+                        email: userEmail,
+                        uid: userUID,
+                        emailVerified: true
+                    };
+                }
+                
+                // Nettoyer si l'authentification est expirée
+                if (!isRecent && isAuthenticated) {
+                    this.clearLocalStorageAuth();
+                }
+                
+                return null;
+            }
+            
+            // NOUVELLE MÉTHODE: Nettoyer l'authentification locale
+            clearLocalStorageAuth() {
+                localStorage.removeItem('userAuthenticated');
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('userUID');
+                localStorage.removeItem('authTimestamp');
+            }
+            
+            // NOUVELLE MÉTHODE: Sauvegarder l'authentification Firebase dans localStorage
+            saveFirebaseAuthToLocalStorage(user) {
+                localStorage.setItem('userAuthenticated', 'true');
+                localStorage.setItem('userEmail', user.email);
+                localStorage.setItem('userUID', user.uid);
+                localStorage.setItem('authTimestamp', Date.now());
+                console.log("Authentification Firebase sauvegardée dans localStorage");
+            }
+            
+            // MODIFIÉE: Configurer l'écouteur d'authentification
             setupAuthListener() {
+                console.log("Vérification de l'authentification...");
+                
+                // 1. PRIORITÉ: Vérifier l'authentification via localStorage (économie d'emails)
+                const localUser = this.checkLocalStorageAuth();
+                if (localUser) {
+                    console.log("✅ Utilisateur authentifié via localStorage:", localUser.email);
+                    this.currentUser = localUser;
+                    this.showMainInterface();
+                    this.loadVideoSelections();
+                    return;
+                }
+                
+                console.log("Aucune authentification localStorage trouvée, vérification Firebase...");
+                
+                // 2. Vérifier si on revient d'un lien de connexion Firebase
+                this.handleSignInRedirect();
+                
+                // 3. Écouter les changements d'authentification Firebase
                 window.firebase.onAuthStateChanged(window.firebase.auth, (user) => {
                     if (user) {
+                        console.log("✅ Utilisateur authentifié via Firebase:", user.email);
                         this.currentUser = user;
+                        
+                        // SAUVEGARDER dans localStorage pour les prochaines connexions
+                        this.saveFirebaseAuthToLocalStorage(user);
+                        
                         this.showMainInterface();
                         this.loadVideoSelections();
                     } else {
+                        console.log("❌ Aucun utilisateur authentifié");
                         this.currentUser = null;
                         this.showAuthInterface();
                     }
@@ -1128,11 +1195,17 @@
                 }, { once: true });
             }
             
-            // Sélectionner une vidéo
+            // MODIFIÉE: Sélectionner une vidéo
             async selectVideo(filename) {
+                // Vérifier d'abord l'authentification localStorage
                 if (!this.currentUser) {
-                    this.showConfirmation('Veuillez vous connecter pour sélectionner une vidéo', 'error');
-                    return;
+                    const localUser = this.checkLocalStorageAuth();
+                    if (localUser) {
+                        this.currentUser = localUser;
+                    } else {
+                        this.showConfirmation('Veuillez vous connecter pour sélectionner une vidéo', 'error');
+                        return;
+                    }
                 }
                 
                 // Vérifier si la vidéo est déjà sélectionnée par quelqu'un d'autre
@@ -1281,108 +1354,123 @@
             }
             
             // Gérer la connexion
-async handleLogin() {
-    const email = document.getElementById('emailInput').value.trim();
-    const messageElement = document.getElementById('loginMessage');
-    
-    if (!email) {
-        messageElement.textContent = 'Veuillez entrer votre adresse email';
-        return;
-    }
-    
-    if (!this.isValidEmail(email)) {
-        messageElement.textContent = 'Veuillez entrer une adresse email valide';
-        return;
-    }
-    
-    try {
-        messageElement.textContent = 'Envoi du lien de connexion...';
-        messageElement.style.color = 'var(--primary)';
-        
-        // Configuration pour le lien de connexion
-        const actionCodeSettings = {
-            url: window.location.origin + window.location.pathname,
-            handleCodeInApp: true
-        };
-        
-        console.log('Envoi du lien à:', email);
-        
-        await window.firebase.sendSignInLinkToEmail(
-            window.firebase.auth, 
-            email, 
-            actionCodeSettings
-        );
-        
-        // Stocker l'email localement
-        window.localStorage.setItem('emailForSignIn', email);
-        
-        messageElement.textContent = 'Lien de connexion envoyé ! Vérifiez votre email (pensez à vérifier les spams).';
-        messageElement.style.color = 'var(--success)';
-        
-    } catch (error) {
-        console.error('Erreur détaillée lors de l\'envoi du lien:', error);
-        console.error('Code erreur:', error.code);
-        console.error('Message erreur:', error.message);
-        
-        let errorMessage = 'Erreur lors de l\'envoi du lien. ';
-        
-        switch (error.code) {
-            case 'auth/invalid-email':
-                errorMessage += 'Email invalide.';
-                break;
-            case 'auth/unauthorized-domain':
-                errorMessage += 'Domaine non autorisé. Vérifiez la configuration Firebase.';
-                break;
-            case 'auth/operation-not-allowed':
-                errorMessage += 'La connexion par email/lien n\'est pas activée. Vérifiez la console Firebase.';
-                break;
-            default:
-                errorMessage += 'Veuillez réessayer.';
-        }
-        
-        messageElement.textContent = errorMessage;
-        messageElement.style.color = 'var(--danger)';
-    }
-}
+            async handleLogin() {
+                const email = document.getElementById('emailInput').value.trim();
+                const messageElement = document.getElementById('loginMessage');
+                
+                if (!email) {
+                    messageElement.textContent = 'Veuillez entrer votre adresse email';
+                    return;
+                }
+                
+                if (!this.isValidEmail(email)) {
+                    messageElement.textContent = 'Veuillez entrer une adresse email valide';
+                    return;
+                }
+                
+                try {
+                    messageElement.textContent = 'Envoi du lien de connexion...';
+                    messageElement.style.color = 'var(--primary)';
+                    
+                    // Configuration pour le lien de connexion
+                    const actionCodeSettings = {
+                        url: window.location.origin + window.location.pathname,
+                        handleCodeInApp: true
+                    };
+                    
+                    console.log('Envoi du lien à:', email);
+                    
+                    await window.firebase.sendSignInLinkToEmail(
+                        window.firebase.auth, 
+                        email, 
+                        actionCodeSettings
+                    );
+                    
+                    // Stocker l'email localement
+                    window.localStorage.setItem('emailForSignIn', email);
+                    
+                    messageElement.textContent = 'Lien de connexion envoyé ! Vérifiez votre email (pensez à vérifier les spams).';
+                    messageElement.style.color = 'var(--success)';
+                    
+                } catch (error) {
+                    console.error('Erreur détaillée lors de l\'envoi du lien:', error);
+                    console.error('Code erreur:', error.code);
+                    console.error('Message erreur:', error.message);
+                    
+                    let errorMessage = 'Erreur lors de l\'envoi du lien. ';
+                    
+                    switch (error.code) {
+                        case 'auth/invalid-email':
+                            errorMessage += 'Email invalide.';
+                            break;
+                        case 'auth/unauthorized-domain':
+                            errorMessage += 'Domaine non autorisé. Vérifiez la configuration Firebase.';
+                            break;
+                        case 'auth/operation-not-allowed':
+                            errorMessage += 'La connexion par email/lien n\'est pas activée. Vérifiez la console Firebase.';
+                            break;
+                        default:
+                            errorMessage += 'Veuillez réessayer.';
+                    }
+                    
+                    messageElement.textContent = errorMessage;
+                    messageElement.style.color = 'var(--danger)';
+                }
+            }
 
             // Vérifier si on revient d'un lien de connexion
-async handleSignInRedirect() {
-    if (window.firebase.isSignInWithEmailLink(window.firebase.auth, window.location.href)) {
-        try {
-            let email = window.localStorage.getItem('emailForSignIn');
-            
-            if (!email) {
-                // Demander l'email à l'utilisateur
-                email = window.prompt('Veuillez confirmer votre email pour la connexion:');
+            async handleSignInRedirect() {
+                if (window.firebase.isSignInWithEmailLink(window.firebase.auth, window.location.href)) {
+                    try {
+                        let email = window.localStorage.getItem('emailForSignIn');
+                        
+                        if (!email) {
+                            // Demander l'email à l'utilisateur
+                            email = window.prompt('Veuillez confirmer votre email pour la connexion:');
+                        }
+                        
+                        if (email) {
+                            const result = await window.firebase.signInWithEmailLink(
+                                window.firebase.auth, 
+                                email, 
+                                window.location.href
+                            );
+                            
+                            // Nettoyer l'URL
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                            window.localStorage.removeItem('emailForSignIn');
+                            
+                            console.log('Connexion réussie:', result.user.email);
+                        }
+                    } catch (error) {
+                        console.error('Erreur lors de la connexion avec le lien:', error);
+                        this.showConfirmation('Erreur lors de la connexion', 'error');
+                    }
+                }
             }
             
-            if (email) {
-                const result = await window.firebase.signInWithEmailLink(
-                    window.firebase.auth, 
-                    email, 
-                    window.location.href
-                );
-                
-                // Nettoyer l'URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-                window.localStorage.removeItem('emailForSignIn');
-                
-                console.log('Connexion réussie:', result.user.email);
-            }
-        } catch (error) {
-            console.error('Erreur lors de la connexion avec le lien:', error);
-            this.showConfirmation('Erreur lors de la connexion', 'error');
-        }
-    }
-}
-            
-            // Gérer la déconnexion
+            // MODIFIÉE: Gérer la déconnexion
             async handleLogout() {
                 try {
-                    await window.firebase.auth.signOut();
+                    // Se déconnecter de Firebase si disponible
+                    if (window.firebase && window.firebase.auth) {
+                        await window.firebase.auth.signOut();
+                    }
+                    
+                    // Nettoyer localStorage
+                    this.clearLocalStorageAuth();
+                    
+                    this.currentUser = null;
+                    this.showAuthInterface();
                     this.showConfirmation('Déconnexion réussie');
+                    
                 } catch (error) {
                     console.error('Erreur lors de la déconnexion:', error);
+                    // Nettoyer localStorage même en cas d'erreur
+                    this.clearLocalStorageAuth();
+                    this.currentUser = null;
+                    this.showAuthInterface();
+                    this.showConfirmation('Déconnexion réussie');
                 }
             }
             
