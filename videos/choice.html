@@ -73,7 +73,7 @@
         }
         
         body {
-            background: url('https://github.com/Lost-Cyrano/ClashRoyalTournament/blob/main/background.jpeg?raw=true') no-repeat center center fixed;
+            background: url('https://lost-cyrano.github.io/ClashRoyalTournament/background.jpeg') no-repeat center center fixed;
             background-size: cover;
             color: var(--light);
             line-height: 1.6;
@@ -865,6 +865,9 @@
                 // Vérifier l'état d'authentification
                 this.setupAuthListener();
                 
+                // Démarrer la vérification périodique
+                this.setupPeriodicAuthCheck();
+                
                 // Charger les vidéos depuis GitHub
                 await this.loadVideosFromGitHub();
                 
@@ -886,7 +889,40 @@
                 });
             }
             
-            // NOUVELLE MÉTHODE: Vérifier l'authentification via localStorage
+            // Vérifier périodiquement l'état d'authentification
+            setupPeriodicAuthCheck() {
+                // Vérifier toutes les 2 secondes pendant 30 secondes après le chargement
+                let checkCount = 0;
+                const maxChecks = 15; // 30 secondes maximum (15 * 2s)
+                
+                const checkAuth = () => {
+                    if (checkCount >= maxChecks) {
+                        console.log("Arrêt de la vérification périodique");
+                        return;
+                    }
+                    
+                    // Si l'utilisateur n'est pas encore connecté, vérifier localStorage
+                    if (!this.currentUser) {
+                        const localUser = this.checkLocalStorageAuth();
+                        if (localUser) {
+                            console.log("✅ Utilisateur détecté via vérification périodique:", localUser.email);
+                            this.currentUser = localUser;
+                            this.showMainInterface();
+                            this.loadVideoSelections();
+                            this.showConfirmation('Connexion automatique réussie !');
+                            return;
+                        }
+                    }
+                    
+                    checkCount++;
+                    setTimeout(checkAuth, 2000); // Vérifier toutes les 2 secondes
+                };
+                
+                // Démarrer la vérification après 1 seconde
+                setTimeout(checkAuth, 1000);
+            }
+            
+            // Vérifier l'authentification via localStorage
             checkLocalStorageAuth() {
                 const isAuthenticated = localStorage.getItem('userAuthenticated');
                 const userEmail = localStorage.getItem('userEmail');
@@ -912,7 +948,7 @@
                 return null;
             }
             
-            // NOUVELLE MÉTHODE: Nettoyer l'authentification locale
+            // Nettoyer l'authentification locale
             clearLocalStorageAuth() {
                 localStorage.removeItem('userAuthenticated');
                 localStorage.removeItem('userEmail');
@@ -920,7 +956,7 @@
                 localStorage.removeItem('authTimestamp');
             }
             
-            // NOUVELLE MÉTHODE: Sauvegarder l'authentification Firebase dans localStorage
+            // Sauvegarder l'authentification Firebase dans localStorage
             saveFirebaseAuthToLocalStorage(user) {
                 localStorage.setItem('userAuthenticated', 'true');
                 localStorage.setItem('userEmail', user.email);
@@ -929,42 +965,81 @@
                 console.log("Authentification Firebase sauvegardée dans localStorage");
             }
             
-            // MODIFIÉE: Configurer l'écouteur d'authentification
+            // Configurer l'écouteur d'authentification
             setupAuthListener() {
                 console.log("Vérification de l'authentification...");
                 
-                // 1. PRIORITÉ: Vérifier l'authentification via localStorage (économie d'emails)
-                const localUser = this.checkLocalStorageAuth();
-                if (localUser) {
-                    console.log("✅ Utilisateur authentifié via localStorage:", localUser.email);
-                    this.currentUser = localUser;
-                    this.showMainInterface();
-                    this.loadVideoSelections();
-                    return;
-                }
-                
-                console.log("Aucune authentification localStorage trouvée, vérification Firebase...");
-                
-                // 2. Vérifier si on revient d'un lien de connexion Firebase
-                this.handleSignInRedirect();
-                
-                // 3. Écouter les changements d'authentification Firebase
-                window.firebase.onAuthStateChanged(window.firebase.auth, (user) => {
-                    if (user) {
-                        console.log("✅ Utilisateur authentifié via Firebase:", user.email);
-                        this.currentUser = user;
-                        
-                        // SAUVEGARDER dans localStorage pour les prochaines connexions
-                        this.saveFirebaseAuthToLocalStorage(user);
-                        
+                // 1. Vérifier d'abord si on revient d'un lien de connexion Firebase
+                this.handleSignInRedirect().then(() => {
+                    // 2. Ensuite vérifier l'authentification via localStorage (économie d'emails)
+                    const localUser = this.checkLocalStorageAuth();
+                    if (localUser) {
+                        console.log("✅ Utilisateur authentifié via localStorage:", localUser.email);
+                        this.currentUser = localUser;
                         this.showMainInterface();
                         this.loadVideoSelections();
-                    } else {
-                        console.log("❌ Aucun utilisateur authentifié");
-                        this.currentUser = null;
-                        this.showAuthInterface();
+                        return;
                     }
+                    
+                    console.log("Aucune authentification localStorage trouvée, vérification Firebase...");
+                    
+                    // 3. Écouter les changements d'authentification Firebase
+                    window.firebase.onAuthStateChanged(window.firebase.auth, (user) => {
+                        if (user) {
+                            console.log("✅ Utilisateur authentifié via Firebase:", user.email);
+                            this.currentUser = user;
+                            
+                            // SAUVEGARDER dans localStorage pour les prochaines connexions
+                            this.saveFirebaseAuthToLocalStorage(user);
+                            
+                            this.showMainInterface();
+                            this.loadVideoSelections();
+                        } else {
+                            console.log("❌ Aucun utilisateur authentifié");
+                            this.currentUser = null;
+                            this.showAuthInterface();
+                        }
+                    });
                 });
+            }
+            
+            // Vérifier si on revient d'un lien de connexion
+            async handleSignInRedirect() {
+                if (window.firebase.isSignInWithEmailLink(window.firebase.auth, window.location.href)) {
+                    try {
+                        let email = window.localStorage.getItem('emailForSignIn');
+                        
+                        if (!email) {
+                            // Demander l'email à l'utilisateur
+                            email = window.prompt('Veuillez confirmer votre email pour la connexion:');
+                        }
+                        
+                        if (email) {
+                            const result = await window.firebase.signInWithEmailLink(
+                                window.firebase.auth, 
+                                email, 
+                                window.location.href
+                            );
+                            
+                            // Nettoyer l'URL
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                            window.localStorage.removeItem('emailForSignIn');
+                            
+                            console.log('Connexion réussie:', result.user.email);
+                            
+                            // METTRE À JOUR L'INTERFACE AUTOMATIQUEMENT
+                            this.currentUser = result.user;
+                            this.saveFirebaseAuthToLocalStorage(result.user);
+                            this.showMainInterface();
+                            this.loadVideoSelections();
+                            
+                            this.showConfirmation('Connexion réussie !');
+                        }
+                    } catch (error) {
+                        console.error('Erreur lors de la connexion avec le lien:', error);
+                        this.showConfirmation('Erreur lors de la connexion', 'error');
+                    }
+                }
             }
             
             // Afficher l'interface d'authentification
@@ -1028,26 +1103,34 @@
             // Charger dynamiquement les vidéos depuis GitHub
             async loadVideosFromGitHub() {
                 try {
-                    // URL de l'API GitHub pour récupérer le contenu du dossier
+                    // URL pour récupérer le contenu du dossier videos/bibli
                     const apiUrl = 'https://api.github.com/repos/Lost-Cyrano/ClashRoyalTournament/contents/videos/bibli';
+                    
+                    console.log('Chargement des vidéos depuis:', apiUrl);
                     
                     const response = await fetch(apiUrl);
                     if (!response.ok) {
-                        throw new Error('Impossible de récupérer les vidéos depuis GitHub');
+                        throw new Error(`Impossible de récupérer les vidéos depuis GitHub: ${response.status} ${response.statusText}`);
                     }
                     
                     const files = await response.json();
+                    console.log('Fichiers récupérés:', files);
                     
                     // Filtrer seulement les fichiers MP4
                     const videoFiles = files.filter(file => 
                         file.type === 'file' && file.name.toLowerCase().endsWith('.mp4')
                     );
                     
-                    console.log(`${videoFiles.length} vidéos MP4 trouvées sur GitHub`);
+                    console.log(`${videoFiles.length} vidéos MP4 trouvées sur GitHub:`, videoFiles.map(f => f.name));
+                    
+                    if (videoFiles.length === 0) {
+                        throw new Error('Aucune vidéo MP4 trouvée dans le dossier');
+                    }
                     
                     // Créer les objets vidéo avec les URLs raw
                     this.availableVideos = videoFiles.map(file => {
-                        const rawUrl = `https://raw.githubusercontent.com/Lost-Cyrano/ClashRoyalTournament/main/videos/bibli/${file.name}`;
+                        // URL corrigée pour les fichiers raw GitHub
+                        const rawUrl = `https://raw.githubusercontent.com/Lost-Cyrano/ClashRoyalTournament/main/videos/bibli/${encodeURIComponent(file.name)}`;
                         return {
                             filename: file.name,
                             url: rawUrl,
@@ -1057,10 +1140,12 @@
                     });
                     
                     this.updateAvailableVideos();
+                    this.renderVideos();
+                    this.updateStats();
                     
                 } catch (error) {
                     console.error('Erreur lors du chargement des vidéos depuis GitHub:', error);
-                    this.showError('Impossible de charger les vidéos depuis GitHub');
+                    this.showError(`Impossible de charger les vidéos depuis GitHub: ${error.message}`);
                 }
             }
             
@@ -1195,7 +1280,7 @@
                 }, { once: true });
             }
             
-            // MODIFIÉE: Sélectionner une vidéo
+            // Sélectionner une vidéo
             async selectVideo(filename) {
                 // Vérifier d'abord l'authentification localStorage
                 if (!this.currentUser) {
@@ -1417,39 +1502,8 @@
                     messageElement.style.color = 'var(--danger)';
                 }
             }
-
-            // Vérifier si on revient d'un lien de connexion
-            async handleSignInRedirect() {
-                if (window.firebase.isSignInWithEmailLink(window.firebase.auth, window.location.href)) {
-                    try {
-                        let email = window.localStorage.getItem('emailForSignIn');
-                        
-                        if (!email) {
-                            // Demander l'email à l'utilisateur
-                            email = window.prompt('Veuillez confirmer votre email pour la connexion:');
-                        }
-                        
-                        if (email) {
-                            const result = await window.firebase.signInWithEmailLink(
-                                window.firebase.auth, 
-                                email, 
-                                window.location.href
-                            );
-                            
-                            // Nettoyer l'URL
-                            window.history.replaceState({}, document.title, window.location.pathname);
-                            window.localStorage.removeItem('emailForSignIn');
-                            
-                            console.log('Connexion réussie:', result.user.email);
-                        }
-                    } catch (error) {
-                        console.error('Erreur lors de la connexion avec le lien:', error);
-                        this.showConfirmation('Erreur lors de la connexion', 'error');
-                    }
-                }
-            }
             
-            // MODIFIÉE: Gérer la déconnexion
+            // Gérer la déconnexion
             async handleLogout() {
                 try {
                     // Se déconnecter de Firebase si disponible
