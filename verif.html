@@ -178,8 +178,8 @@
             </div>
             <h2>Inscription Confirmée !</h2>
             <p id="successInscriptionMessage">Votre inscription au tournoi Clash Royal a été confirmée avec succès.</p>
-            <a href="index.html" class="btn">
-                <i class="fas fa-home"></i> Retour à l'accueil
+            <a href="https://lost-cyrano.github.io/ClashRoyalTournament/videos/choice" class="btn" id="inscriptionRedirectBtn">
+                <i class="fas fa-film"></i> Sélectionner une vidéo
             </a>
         </div>
         
@@ -190,11 +190,8 @@
             </div>
             <h2>Connexion Réussie !</h2>
             <p id="successConnexionMessage">Vous êtes maintenant connecté à votre compte.</p>
-            <a href="selection-video.html" class="btn">
+            <a href="https://lost-cyrano.github.io/ClashRoyalTournament/videos/choice" class="btn" id="connexionRedirectBtn">
                 <i class="fas fa-film"></i> Sélectionner une vidéo
-            </a>
-            <a href="index.html" class="btn" style="margin-left: 10px;">
-                <i class="fas fa-home"></i> Accueil
             </a>
         </div>
         
@@ -416,19 +413,54 @@
             }
         }
 
+        // Fonction pour sauvegarder l'authentification dans localStorage (NOUVELLE FONCTION)
+        function saveAuthToLocalStorage(user) {
+            localStorage.setItem('userAuthenticated', 'true');
+            localStorage.setItem('userEmail', user.email);
+            localStorage.setItem('userUID', user.uid);
+            localStorage.setItem('authTimestamp', Date.now());
+            console.log("Authentification sauvegardée dans localStorage pour:", user.email);
+        }
+
         // Fonction pour afficher l'état de succès de connexion
         function showConnexionSuccess(user) {
+            // Sauvegarder l'authentification dans localStorage
+            saveAuthToLocalStorage(user);
+            
             document.getElementById('loadingState').classList.add('hidden');
             document.getElementById('successConnexionState').classList.remove('hidden');
             document.getElementById('successConnexionMessage').textContent = 
                 `Bienvenue ${user.email} ! Vous êtes maintenant connecté à votre compte.`;
+                
+            // Redirection automatique après 2 secondes
+            setTimeout(() => {
+                window.location.href = 'https://lost-cyrano.github.io/ClashRoyalTournament/videos/choice';
+            }, 2000);
         }
 
         // Fonction pour afficher l'état de succès d'inscription
-        function showInscriptionSuccess(message) {
+        function showInscriptionSuccess(message, userData) {
+            // Si un utilisateur est connecté, sauvegarder l'authentification
+            const user = auth.currentUser;
+            if (user) {
+                saveAuthToLocalStorage(user);
+            } else if (userData && userData.email) {
+                // Créer un objet utilisateur factice pour sauvegarder l'email
+                const tempUser = {
+                    email: userData.email,
+                    uid: 'temp_' + Date.now()
+                };
+                saveAuthToLocalStorage(tempUser);
+            }
+            
             document.getElementById('loadingState').classList.add('hidden');
             document.getElementById('successInscriptionState').classList.remove('hidden');
             document.getElementById('successInscriptionMessage').textContent = message;
+            
+            // Redirection automatique après 2 secondes
+            setTimeout(() => {
+                window.location.href = 'https://lost-cyrano.github.io/ClashRoyalTournament/videos/choice';
+            }, 2000);
         }
 
         // Fonction pour afficher l'état d'erreur
@@ -482,7 +514,7 @@
                     const inscriptionResult = await completeInscription(userData);
 
                     if (inscriptionResult.success) {
-                        showInscriptionSuccess(inscriptionResult.message);
+                        showInscriptionSuccess(inscriptionResult.message, userData);
                         console.log("Inscription finalisée avec succès");
                     } else {
                         throw new Error(inscriptionResult.message);
